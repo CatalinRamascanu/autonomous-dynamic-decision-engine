@@ -1,13 +1,19 @@
 {
   "input-data":[
-    "auth_rate",
-    "num_online_users",
-    "wrong_pass_rate"
+    {
+      "input-id":"adobeInput",
+      "data-types":{
+        "auth_rate":"float",
+        "num_online_users":"int",
+        "wrong_pass_rate":"float",
+        "pass-status":"string"
+      }
+    }
   ],
   "rules":[
     {
       "rule-id":"rule_01",
-      "actors":["auth_rate"],
+      "actors":["auth_rate","pass-status"],
       "condition": "auth_rate > 1000",
       "actions":["auth-rate-action"]
     },

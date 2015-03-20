@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Created by ramascan on 18/03/15.
@@ -13,11 +14,19 @@ import java.util.Iterator;
 public class ConfigParser {
     private String fileName;
 
-    private HashSet<String> inputNameList = new HashSet<String>();
-    private HashSet<RuleData> ruleList = new HashSet<RuleData>();
+    private Set<InputData> inputSet = new HashSet<InputData>();
+    private Set<RuleData> ruleSet = new HashSet<RuleData>();
 
     public ConfigParser(String fileName) {
         this.fileName = fileName;
+    }
+
+    public Set<InputData> getInputSet() {
+        return inputSet;
+    }
+
+    public Set<RuleData> getRuleSet() {
+        return ruleSet;
     }
 
     public void parseFile(){
@@ -29,11 +38,25 @@ public class ConfigParser {
 
             // Input data
             JSONArray inputArray = (JSONArray) configObject.get("input-data");
-            Iterator<String> iterator = inputArray.iterator();
-            while (iterator.hasNext()) {
-                inputNameList.add(iterator.next());
+            Iterator<JSONObject> inputIterator = inputArray.iterator();
+            while (inputIterator.hasNext()) {
+                JSONObject inputObject = inputIterator.next();
+
+                InputData input = new InputData();
+                input.setInputID((String) inputObject.get("input-id"));
+
+                JSONObject dataObject = (JSONObject) inputObject.get("data-types");
+                for (Object key: dataObject.keySet()){
+                    DataType dataType = new DataType();
+                    dataType.setName(key.toString());
+
+                    dataType.setType(getTypeObject((String) dataObject.get(key)));
+
+                    input.addDataType(dataType);
+                }
+
+                inputSet.add(input);
             }
-            System.out.println(inputNameList);
 
             // Rule data
             JSONArray ruleArray = (JSONArray) configObject.get("rules");
@@ -66,20 +89,25 @@ public class ConfigParser {
                 }
 
                 // RuleData
-                ruleList.add(new RuleData(ruleID,actors,condition,decisions));
+                ruleSet.add(new RuleData(ruleID, actors, condition, decisions));
             }
-            System.out.println(ruleList);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public HashSet<String> getInputNameList() {
-        return inputNameList;
-    }
 
-    public HashSet<RuleData> getRuleList() {
-        return ruleList;
+    private Object getTypeObject(String value){
+        switch (value){
+            case "string":
+                return String.class;
+            case "int":
+                return int.class;
+            case "float":
+                return float.class;
+            default:
+                return null;
+        }
     }
 }
