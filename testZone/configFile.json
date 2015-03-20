@@ -1,0 +1,21 @@
+{
+  "input-data":[
+    "auth_rate",
+    "num_online_users",
+    "wrong_pass_rate"
+  ],
+  "rules":[
+    {
+      "rule-id":"rule_01",
+      "actors":["auth_rate"],
+      "condition": "auth_rate > 1000",
+      "actions":["auth-rate-action"]
+    },
+    {
+      "rule-id":"rule_02",
+      "actors":["num_online_users", "auth_rate", "wrong_pass_rate"],
+      "condition": "wrong_pass_rate = auth_rate",
+      "actions":["auth-rate-action"]
+    }
+  ]
+}

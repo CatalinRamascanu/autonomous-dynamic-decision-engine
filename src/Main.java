@@ -1,5 +1,6 @@
 import com.espertech.esper.client.*;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -7,29 +8,44 @@ import java.util.Random;
  */
 public class Main {
     public static void main(String[] args){
+
+        ConfigParser parser = new ConfigParser("testZone/configFile.json");
+        parser.parseFile();
+
         //The Configuration is meant only as an initialization-time object.
         Configuration cepConfig = new Configuration();
         // We register Ticks as objects the engine will have to handle
-        cepConfig.addEventType("StockTick",Tick.class.getName());
+        cepConfig.addEventType(EventData.class);
 
         // We setup the engine
-        EPServiceProvider cep = EPServiceProviderManager.getProvider("myCEPEngine", cepConfig);
+        EPServiceProvider cep = EPServiceProviderManager.getProvider("esperEngine", cepConfig);
+
+        RuleManager ruleManager = new RuleManager();
+        ruleManager.setRuleList(parser.getRuleList());
+
+        ArrayList<String> statements = ruleManager.generateStatements();
+        System.out.println(statements);
+
+        for (String statement: statements){
+            // We register an EPL statement
+            EPAdministrator cepAdm = cep.getEPAdministrator();
+            EPStatement cepStatement = cepAdm.createEPL(statement);
+            cepStatement.addListener(new CEPListener());
+        }
 
         EPRuntime cepRT = cep.getEPRuntime();
 
-        // We register an EPL statement
-        EPAdministrator cepAdm = cep.getEPAdministrator();
-        EPStatement cepStatement = cepAdm.createEPL("select * from " +
-                "StockTick(symbol='AAPL').win:length(2) " +
-                "having avg(price) > 6.0");
+        // We generate a few inputs...
+        for (int i = 0; i < 1; i++) {
+            EventData data = new EventData();
+            data.addInputNameSet(parser.getInputNameList());
 
-        cepStatement.addListener(new CEPListener());
+            data.addInput("auth_rate","" + (double) generator.nextInt(10));
+            data.addInput("num_online_users","" + (double) generator.nextInt(10));
+            data.addInput("wrong_pass_rate","" + (double) generator.nextInt(10));
 
-        // We generate a few ticks...
-        for (int i = 0; i < 5; i++) {
-            GenerateRandomTick(cepRT);
+            cepRT.sendEvent(data);
         }
-
     }
 
     public static class CEPListener implements UpdateListener {
@@ -40,13 +56,4 @@ public class Main {
     }
 
     private static Random generator=new Random();
-
-    public static void GenerateRandomTick(EPRuntime cepRT){
-        double price = (double) generator.nextInt(10);
-        long timeStamp = System.currentTimeMillis();
-        String symbol = "AAPL";
-        Tick tick= new Tick(symbol,price,timeStamp);
-        System.out.println("Sending tick:" + tick);
-        cepRT.sendEvent(tick);
-    }
 }
