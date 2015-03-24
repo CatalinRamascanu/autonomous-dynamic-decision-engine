@@ -1,8 +1,11 @@
+package input;
+
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Created by ramascan on 20/03/15.
+ * Contains the input defined in the configuration file.
  */
 public class InputData {
     private String inputID;

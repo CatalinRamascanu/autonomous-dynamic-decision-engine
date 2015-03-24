@@ -1,6 +1,11 @@
+package configuration;
+
+import input.DataType;
+import input.InputData;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import rules.RuleData;
 
 import java.io.FileReader;
 import java.util.ArrayList;
@@ -10,6 +15,8 @@ import java.util.Set;
 
 /**
  * Created by ramascan on 18/03/15.
+ * This class is responsible with parsing the json configuration file.
+ * The result of the parsing is represented by the fields of type Set.
  */
 public class ConfigParser {
     private String fileName;
@@ -31,7 +38,6 @@ public class ConfigParser {
 
     public void parseFile(){
         JSONParser parser = new JSONParser();
-
         try {
 
             JSONObject configObject = (JSONObject) parser.parse(new FileReader(fileName));
@@ -97,15 +103,18 @@ public class ConfigParser {
         }
     }
 
-
     private Object getTypeObject(String value){
         switch (value){
             case "string":
                 return String.class;
             case "int":
                 return int.class;
+            case "long":
+                return long.class;
             case "float":
                 return float.class;
+            case "double":
+                return double.class;
             default:
                 return null;
         }

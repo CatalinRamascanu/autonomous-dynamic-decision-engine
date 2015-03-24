@@ -13,14 +13,14 @@
   "rules":[
     {
       "rule-id":"rule_01",
-      "actors":["auth_rate","pass-status"],
-      "condition": "auth_rate > 1000",
+      "actors":["auth_rate","pass-status", "num_online_users"],
+      "condition": "auth_rate = 2 || num_online_users > 5",
       "actions":["auth-rate-action"]
     },
     {
       "rule-id":"rule_02",
       "actors":["num_online_users", "auth_rate", "wrong_pass_rate"],
-      "condition": "wrong_pass_rate = auth_rate",
+      "condition": "1 = wrong_pass_rate && num_online_users < 5",
       "actions":["auth-rate-action"]
     }
   ]

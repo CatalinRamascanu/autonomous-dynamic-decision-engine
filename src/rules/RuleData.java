@@ -1,7 +1,10 @@
+package rules;
+
 import java.util.ArrayList;
 
 /**
  * Created by ramascan on 18/03/15.
+ * Represents a rule defined in the configuration file.
  */
 public class RuleData {
     private String ruleID;

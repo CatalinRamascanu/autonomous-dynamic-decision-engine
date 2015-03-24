@@ -1,6 +1,8 @@
 import com.espertech.esper.client.*;
+import configuration.ConfigParser;
+import esper.EventDataManager;
+import rules.RuleManager;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -10,7 +12,6 @@ import java.util.Random;
  */
 public class Main {
     public static void main(String[] args){
-
         ConfigParser parser = new ConfigParser("testZone/configFile.json");
         parser.parseFile();
 
@@ -25,6 +26,7 @@ public class Main {
         // Define rules
         RuleManager ruleManager = new RuleManager();
         ruleManager.setRuleSet(parser.getRuleSet());
+        ruleManager.setInputSet(parser.getInputSet());
         ruleManager.addRulesToEngine(cep);
 
         EPRuntime cepRT = cep.getEPRuntime();
@@ -32,16 +34,24 @@ public class Main {
         System.out.println("All running fine.");
 
         // We generate a few inputs...
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 20; i++) {
             Map event = new HashMap();
-            event.put("auth_rate", generator.nextFloat());
-            event.put("num_online_users", generator.nextInt(10));
-            event.put("wrong_pass_rate", (float) generator.nextInt(10));
+
+            float auth_rate = (float) generator.nextInt(10);
+            int num_online_users = generator.nextInt(10);
+            float wrong_pass_rate = (float) generator.nextInt(10);
+
+            event.put("auth_rate", auth_rate);
+            event.put("num_online_users", num_online_users);
+            event.put("wrong_pass_rate", wrong_pass_rate);
             event.put("pass-status", "Success");
             cepRT.sendEvent(event, "adobeInput");
+
+//            System.out.println("Sent: auth_rate=" + auth_rate +
+//            " num_online_users=" + num_online_users +
+//            " wrong_pass_rate=" + wrong_pass_rate);
         }
     }
-
 
     private static Random generator=new Random();
 }

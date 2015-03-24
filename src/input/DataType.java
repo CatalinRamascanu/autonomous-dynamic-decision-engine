@@ -1,5 +1,8 @@
+package input;
+
 /**
  * Created by ramascan on 20/03/15.
+ * Represents an entry in the data-fields from the configuration file.
  */
 public class DataType {
     private String name;
