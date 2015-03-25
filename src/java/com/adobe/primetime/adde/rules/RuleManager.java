@@ -7,6 +7,7 @@ import com.espertech.esper.client.UpdateListener;
 import com.espertech.esper.client.soda.*;
 import com.adobe.primetime.adde.input.DataType;
 import com.adobe.primetime.adde.input.InputData;
+import com.adobe.primetime.adde.output.Action;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,6 +21,7 @@ import java.util.Stack;
 public class RuleManager {
     private Set<RuleData> ruleSet;
     private Set<InputData> inputSet;
+    private Set<Action> actionSet;
 
     public static final String MAP_NAME = "dataMap";
 
@@ -35,43 +37,49 @@ public class RuleManager {
         this.ruleSet = ruleSet;
     }
 
+    public void setInputSet(Set<InputData> inputSet) {
+        this.inputSet = inputSet;
+    }
+
+    public void setActionSet(Set<Action> actionSet) {
+        this.actionSet = actionSet;
+    }
+
     public void addRulesToEngine(EPServiceProvider epService){
         for (RuleData ruleData : ruleSet){
             EPStatementObjectModel model = new EPStatementObjectModel();
 
-            // Select statement
+            // Select clause
             SelectClause selectClause = SelectClause.create();
             for (String actor : ruleData.getActors()){
                 selectClause.add(actor);
             }
             model.setSelectClause(selectClause);
 
-            // From statement
+            // From clause
             FromClause fromClause = FromClause.create();
             fromClause.add(FilterStream.create("adobeInput"));
             model.setFromClause(fromClause);
 
-            // Where statement
+            // Where clause
             String postFixCondition = convertToPostFixFormat(ruleData.getCondition());
             Expression whereClauseExpr = createEplExpression(postFixCondition);
             model.setWhereClause(whereClauseExpr);
 
-            // TODO: Define this listener somewhere else.
+            // Create statement
             EPStatement stmt = epService.getEPAdministrator().create(model);
-            stmt.addListener(new CEPListener());
+
+            // Attach actions to statement
+            for (String actionID : ruleData.getActions()){
+                for (Action action : actionSet){
+                    if (actionID.equals(action.getActionID())){
+                        stmt.addListener(action);
+                    }
+                }
+            }
         }
     }
 
-    public void setInputSet(Set<InputData> inputSet) {
-        this.inputSet = inputSet;
-    }
-
-    public static class CEPListener implements UpdateListener {
-
-        public void update(EventBean[] newData, EventBean[] oldData) {
-            System.out.println("Event received: " + newData[0].getUnderlying());
-        }
-    }
 
     // The condition field from the configuration file needs to be
     // converted into postFix format, in order to create the where clause.

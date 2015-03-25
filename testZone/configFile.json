@@ -21,7 +21,21 @@
       "rule-id":"rule_02",
       "actors":["num_online_users", "auth_rate", "wrong_pass_rate"],
       "condition": "1 = wrong_pass_rate && num_online_users < 5",
-      "actions":["auth-rate-action"]
+      "actions":["auth-rate-action","action_rule_02"]
+    }
+  ],
+  "actions":[
+    {
+      "action-id":"auth-rate-action",
+      "action-type":"print-message",
+      "message":"We have a problem with authentication rate.",
+      "target":"STDOUT"
+    },
+    {
+      "action-id":"action_rule_02",
+      "action-type":"print-message",
+      "message":"Rule_02 has fired.",
+      "target":"STDOUT"
     }
   ]
 }

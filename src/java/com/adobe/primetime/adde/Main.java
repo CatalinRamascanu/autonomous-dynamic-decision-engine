@@ -29,6 +29,7 @@ public class Main {
         RuleManager ruleManager = new RuleManager();
         ruleManager.setRuleSet(parser.getRuleSet());
         ruleManager.setInputSet(parser.getInputSet());
+        ruleManager.setActionSet(parser.getActionSet());
         ruleManager.addRulesToEngine(cep);
 
         EPRuntime cepRT = cep.getEPRuntime();
