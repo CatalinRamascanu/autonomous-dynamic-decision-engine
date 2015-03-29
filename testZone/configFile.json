@@ -1,13 +1,13 @@
 {
-  "input-data":[
+  "input":[
     {
       "input-id":"adobeInput",
-      "data-types":{
-        "auth_rate":"float",
-        "num_online_users":"int",
-        "wrong_pass_rate":"float",
-        "pass-status":"string"
-      }
+      "data":[
+        {"name":"auth_rate", "type":"float"},
+        {"name":"num_online_users", "type":"int"},
+        {"name":"wrong_pass_rate", "type":"float"},
+        {"name":"pass-status", "type":"string"}
+      ]
     }
   ],
   "rules":[

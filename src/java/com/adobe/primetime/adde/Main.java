@@ -1,10 +1,15 @@
 package com.adobe.primetime.adde;
 
-import com.espertech.esper.client.*;
-import com.adobe.primetime.adde.configuration.ConfigParser;
+import com.adobe.primetime.adde.configuration.*;
+import com.adobe.primetime.adde.configuration.json.ConfigurationJson;
 import com.adobe.primetime.adde.esper.EventDataManager;
 import com.adobe.primetime.adde.rules.RuleManager;
+import com.espertech.esper.client.Configuration;
+import com.espertech.esper.client.EPRuntime;
+import com.espertech.esper.client.EPServiceProvider;
+import com.espertech.esper.client.EPServiceProviderManager;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -14,22 +19,24 @@ import java.util.Random;
  */
 public class Main {
     public static void main(String[] args){
-        ConfigParser parser = new ConfigParser("testZone/configFile.json");
-        parser.parseFile();
+
+        ConfigurationParser confParser = new ConfigurationParser("testZone/configFile.json");
+        try {
+            confParser.parseJsonAndValidate();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         Configuration cepConfig = new Configuration();
 
         // Define event types
-        EventDataManager.addInputToConfig(cepConfig, parser.getInputSet());
+        EventDataManager.addInputToConfig(cepConfig, confParser.getInputSet());
 
         // We setup the engine
         EPServiceProvider cep = EPServiceProviderManager.getProvider("esperEngine", cepConfig);
 
         // Define rules
-        RuleManager ruleManager = new RuleManager();
-        ruleManager.setRuleSet(parser.getRuleSet());
-        ruleManager.setInputSet(parser.getInputSet());
-        ruleManager.setActionSet(parser.getActionSet());
+        RuleManager ruleManager = new RuleManager(confParser.getRuleSet(), confParser.getActionSet());
         ruleManager.addRulesToEngine(cep);
 
         EPRuntime cepRT = cep.getEPRuntime();
@@ -49,10 +56,6 @@ public class Main {
             event.put("wrong_pass_rate", wrong_pass_rate);
             event.put("pass-status", "Success");
             cepRT.sendEvent(event, "adobeInput");
-
-//            System.out.println("Sent: auth_rate=" + auth_rate +
-//            " num_online_users=" + num_online_users +
-//            " wrong_pass_rate=" + wrong_pass_rate);
         }
     }
 
