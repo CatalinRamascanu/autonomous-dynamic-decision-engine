@@ -66,19 +66,20 @@ public class ConfigurationParser {
             }
 
             for (InputDataJson inputDataJson : inputJson.getData()){
-                DataType dataType = new DataType();
+                String dataName;
+                Object dataType;
 
-                dataType.setName(inputDataJson.getName());
-                if (dataType.getName() == null || dataType.getName().length() == 0){
+                dataName = inputDataJson.getName();
+                if (dataName == null || dataName.length() == 0){
                     // TODO: DataType name is null or empty string.
                 }
 
-                dataType.setType(getTypeObject(inputDataJson.getType()));
-                if (dataType.getType() == null){
+                dataType = getTypeObject(inputDataJson.getType());
+                if (dataType == null){
                     // TODO: DataType type is invalid.
                 }
 
-                inputData.addDataType(dataType);
+                inputData.addDataType(dataName,dataType);
             }
 
             inputSet.add(inputData);
@@ -147,13 +148,13 @@ public class ConfigurationParser {
             case "string":
                 return String.class;
             case "int":
-                return int.class;
+                return Integer.class;
             case "long":
-                return long.class;
+                return Long.class;
             case "float":
-                return float.class;
+                return Float.class;
             case "double":
-                return double.class;
+                return Double.class;
             default:
                 return null;
         }

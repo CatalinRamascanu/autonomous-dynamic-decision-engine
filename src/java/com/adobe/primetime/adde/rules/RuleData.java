@@ -6,7 +6,6 @@ import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.soda.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
@@ -230,7 +229,6 @@ public class RuleData {
                     else{
                         if (propertyType2 == null && isNumeric(op2)){
                             Object valueOp2 = castToType(op2,propertyType1);
-
                             if (valueOp2 == null){
                                 //TODO: Invalid operator. Can not be cast to required property type.
                             }
@@ -265,11 +263,10 @@ public class RuleData {
     private Object getPropertyType(String str){
         for (InputData input : inputSet){
             // Iterate data types
-            for (DataType dataType : input.getTypeSet()){
-                if (str.equals(dataType.getName())){
-                    return dataType.getType();
-                }
+            if (input.getTypeMap().containsKey(str)){
+                return input.getTypeMap().get(str);
             }
+
         }
 
         return null;
@@ -321,19 +318,19 @@ public class RuleData {
             return str;
         }
 
-        if (type == int.class){
+        if (type == Integer.class){
             return Integer.parseInt(str);
         }
 
-        if (type == long.class){
+        if (type == Long.class){
             return Long.parseLong(str);
         }
 
-        if (type == float.class){
+        if (type == Float.class){
             return Float.parseFloat(str);
         }
 
-        if (type == double.class){
+        if (type == Double.class){
             return Double.parseDouble(str);
         }
 

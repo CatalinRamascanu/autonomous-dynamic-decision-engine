@@ -1,6 +1,8 @@
 package com.adobe.primetime.adde.input;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -9,7 +11,7 @@ import java.util.Set;
  */
 public class InputData {
     private String inputID;
-    private Set<DataType> typeSet = new HashSet<DataType>();
+    private Map<String,Object> typeMap = new HashMap();
 
     public String getInputID() {
         return inputID;
@@ -19,12 +21,12 @@ public class InputData {
         this.inputID = inputID;
     }
 
-    public Set<DataType> getTypeSet() {
-        return typeSet;
+    public Map<String,Object> getTypeMap() {
+        return typeMap;
     }
 
-    public void addDataType(DataType dataType){
-        typeSet.add(dataType);
+    public void addDataType(String dataName, Object dataType){
+        typeMap.put(dataName,dataType);
     }
 
     @Override

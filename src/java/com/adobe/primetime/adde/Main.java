@@ -19,33 +19,15 @@ import java.util.Random;
  */
 public class Main {
     public static void main(String[] args){
-
-        ConfigurationParser confParser = new ConfigurationParser("testZone/configFile.json");
-        try {
-            confParser.parseJsonAndValidate();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        Configuration cepConfig = new Configuration();
-
-        // Define event types
-        EventDataManager.addInputToConfig(cepConfig, confParser.getInputSet());
-
-        // We setup the engine
-        EPServiceProvider cep = EPServiceProviderManager.getProvider("esperEngine", cepConfig);
-
-        // Define rules
-        RuleManager ruleManager = new RuleManager(confParser.getRuleSet(), confParser.getActionSet());
-        ruleManager.addRulesToEngine(cep);
-
-        EPRuntime cepRT = cep.getEPRuntime();
+        DecisionEngine decisionEngine = new DecisionEngine();
+        decisionEngine.setConfigurationFile("testZone/configFile.json");
+        decisionEngine.initializeEngine();
 
         System.out.println("All running fine.");
 
         // We generate a few inputs...
         for (int i = 0; i < 20; i++) {
-            Map event = new HashMap();
+            Map<String,Object> event = new HashMap();
 
             float auth_rate = (float) generator.nextInt(10);
             int num_online_users = generator.nextInt(10);
@@ -55,7 +37,7 @@ public class Main {
             event.put("num_online_users", num_online_users);
             event.put("wrong_pass_rate", wrong_pass_rate);
             event.put("pass-status", "Success");
-            cepRT.sendEvent(event, "adobeInput");
+            decisionEngine.addInputData("adobeInput",event);
         }
     }
 

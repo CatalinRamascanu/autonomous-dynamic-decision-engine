@@ -14,15 +14,8 @@ import java.util.Set;
 public class EventDataManager {
     public static void addInputToConfig(Configuration cepConfig,Set<InputData> inputList){
         for (InputData input : inputList){
-            Map<String, Object> def = new HashMap<String, Object>();
-
-            // Define data types
-            for (DataType dataType : input.getTypeSet()){
-                def.put(dataType.getName(), dataType.getType());
-            }
-
             // Add event type
-            cepConfig.addEventType(input.getInputID(),def);
+            cepConfig.addEventType(input.getInputID(),input.getTypeMap());
         }
     }
 }
