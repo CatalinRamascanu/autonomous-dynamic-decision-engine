@@ -4,6 +4,7 @@ import com.adobe.primetime.adde.configuration.*;
 import com.adobe.primetime.adde.configuration.json.ConfigurationJson;
 import com.adobe.primetime.adde.esper.EventDataManager;
 import com.adobe.primetime.adde.rules.RuleManager;
+import com.adobe.primetime.adde.rules.RuleModel;
 import com.espertech.esper.client.Configuration;
 import com.espertech.esper.client.EPRuntime;
 import com.espertech.esper.client.EPServiceProvider;
@@ -24,6 +25,18 @@ public class Main {
         decisionEngine.initializeEngine();
 
         System.out.println("All running fine.");
+
+        // Add rule through api
+        RuleModel ruleModel = new RuleModel();
+        ruleModel.setRuleID("rule_02");
+        ruleModel.addActor("num_online_users");
+        ruleModel.addActor("auth_rate");
+        ruleModel.addActor("wrong_pass_rate");
+        ruleModel.setCondition("1 = wrong_pass_rate && num_online_users < 5");
+        ruleModel.addAction("auth-rate-action");
+        ruleModel.addAction("action_rule_02");
+
+        decisionEngine.addNewRule(ruleModel);
 
         // We generate a few inputs...
         for (int i = 0; i < 20; i++) {

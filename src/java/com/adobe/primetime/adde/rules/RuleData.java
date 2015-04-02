@@ -32,6 +32,8 @@ public class RuleData {
     }
 
     public void createSelectClause(List<String> actors) {
+        // TODO: Check if actor is valid;
+
         // Select clause
         selectClause = SelectClause.create();
         for (String actor : actors){
@@ -74,7 +76,7 @@ public class RuleData {
         return actions;
     }
 
-    public EPStatement getStatement(EPServiceProvider epService){
+    public EPStatement createEsperStatement(EPServiceProvider epService){
         EPStatementObjectModel model = new EPStatementObjectModel();
         model.setSelectClause(selectClause);
         model.setFromClause(fromClause);

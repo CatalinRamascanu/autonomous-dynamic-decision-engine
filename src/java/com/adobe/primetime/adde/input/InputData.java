@@ -32,6 +32,12 @@ public class InputData {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
+
+        if (o instanceof String){
+            System.out.println(o);
+            return inputID.equals((String) o);
+        }
+
         if (!(o instanceof InputData)) return false;
 
         InputData inputData = (InputData) o;

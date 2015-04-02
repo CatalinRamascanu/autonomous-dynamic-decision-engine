@@ -2,15 +2,12 @@ package com.adobe.primetime.adde;
 
 import com.adobe.primetime.adde.configuration.ConfigurationParser;
 import com.adobe.primetime.adde.esper.EventDataManager;
-import com.adobe.primetime.adde.input.DataType;
 import com.adobe.primetime.adde.input.InputData;
 import com.adobe.primetime.adde.output.Action;
 import com.adobe.primetime.adde.rules.RuleData;
 import com.adobe.primetime.adde.rules.RuleManager;
-import com.espertech.esper.client.Configuration;
-import com.espertech.esper.client.EPRuntime;
-import com.espertech.esper.client.EPServiceProvider;
-import com.espertech.esper.client.EPServiceProviderManager;
+import com.adobe.primetime.adde.rules.RuleModel;
+import com.espertech.esper.client.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -66,6 +63,11 @@ public class DecisionEngine {
     }
 
     public void addInputData(String inputId, Map<String, Object> dataMap){
+        if (inputId == null || dataMap == null){
+            throw new NullPointerException();
+        }
+
+        // TODO: This is wrong
         InputData newData = new InputData();
         newData.setInputID(inputId);
         if (!inputSet.contains(newData)){
@@ -97,6 +99,44 @@ public class DecisionEngine {
                 System.err.println("Wrong type used for " + inputName +
                         ". Required " + inputTypeObj +
                         " but used " + dataValueObj.getClass().getName());
+            }
+        }
+    }
+
+    public void addNewRule(RuleModel ruleModel){
+        if (ruleModel == null){
+            throw new NullPointerException();
+        }
+
+        RuleData ruleData = new RuleData(inputSet);
+
+        // TODO: Check if ruleID is unique
+        String ruleID = ruleModel.getRuleID();
+        if (ruleModel.getRuleID() == null){
+            System.err.println("Rule ID is not valid.");
+            return;
+        }
+
+        // Create rule statement;
+        ruleData.setRuleID(ruleID);
+
+        ruleData.createSelectClause(ruleModel.getActors());
+        ruleData.createFromClause();
+        ruleData.createWhereClause(ruleModel.getCondition());
+
+        ruleData.setActions(ruleModel.getActions());
+
+        ruleSet.add(ruleData);
+
+        // Create ESPER statement
+        EPStatement stmt = ruleData.createEsperStatement(epService);
+
+        // Attach actions to statement
+        for (String actionID : ruleData.getActions()){
+            for (Action action : actionSet){
+                if (actionID.equals(action.getActionID())){
+                    stmt.addListener(action);
+                }
             }
         }
     }
