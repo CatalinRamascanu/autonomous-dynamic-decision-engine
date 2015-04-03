@@ -22,9 +22,9 @@ public class DecisionEngine {
     private EPServiceProvider epService;
     private EPRuntime epRuntime;
 
-    private Set<InputData> inputSet;
-    private Set<RuleData> ruleSet;
-    private Set<Action> actionSet;
+    private Map<String,InputData> inputMap;
+    private Map<String,RuleData> ruleMap;
+    private Map<String,Action> actionMap;
 
     public void setConfigurationFile(String filePath){
         configurationFilePath = filePath;
@@ -39,9 +39,9 @@ public class DecisionEngine {
         confParser = new ConfigurationParser(configurationFilePath);
         try {
             confParser.parseJsonAndValidate();
-            inputSet = confParser.getInputSet();
-            ruleSet = confParser.getRuleSet();
-            actionSet = confParser.getActionSet();
+            inputMap = confParser.getInputMap();
+            ruleMap = confParser.getRuleMap();
+            actionMap = confParser.getActionMap();
         } catch (IOException e) {
             System.err.println("Could not parse configuration file.");
             e.printStackTrace();
@@ -50,13 +50,13 @@ public class DecisionEngine {
         Configuration cepConfig = new Configuration();
 
         // Define event types
-        EventDataManager.addInputToConfig(cepConfig, inputSet);
+        EventDataManager.addInputToConfig(cepConfig, inputMap);
 
         // Setup the rule engine
         epService = EPServiceProviderManager.getProvider("esperEngine", cepConfig);
 
         // Define rules
-        RuleManager ruleManager = new RuleManager(ruleSet, actionSet);
+        RuleManager ruleManager = new RuleManager(ruleMap, actionMap);
         ruleManager.addRulesToEngine(epService);
 
         epRuntime= epService.getEPRuntime();
@@ -67,21 +67,12 @@ public class DecisionEngine {
             throw new NullPointerException();
         }
 
-        // TODO: This is wrong
-        InputData newData = new InputData();
-        newData.setInputID(inputId);
-        if (!inputSet.contains(newData)){
+        if (!inputMap.containsKey(inputId)){
             System.err.println("Input with ID: " + inputId + " is not defined.");
             return;
         }
 
-        Map<String,Object> typeMap = null;
-        for (InputData inData : inputSet){
-            if (inputId.equals(inData.getInputID())){
-                typeMap = inData.getTypeMap();
-                break;
-            }
-        }
+        Map<String,Object> typeMap = inputMap.get(inputId).getTypeMap();
 
         for (String inputName : dataMap.keySet()){
             if (!typeMap.containsKey(inputName)){
@@ -108,13 +99,15 @@ public class DecisionEngine {
             throw new NullPointerException();
         }
 
-        RuleData ruleData = new RuleData(inputSet);
+        RuleData ruleData = new RuleData(inputMap);
 
-        // TODO: Check if ruleID is unique
         String ruleID = ruleModel.getRuleID();
         if (ruleModel.getRuleID() == null){
-            System.err.println("Rule ID is not valid.");
+            System.err.println("addNewRule: Rule ID is null.");
             return;
+        }
+        if (ruleMap.containsKey(ruleID)){
+            System.err.println("Can not add rule with ID: "+ ruleID + ". Another rule with the same ID already exists.");
         }
 
         // Create rule statement;
@@ -126,17 +119,19 @@ public class DecisionEngine {
 
         ruleData.setActions(ruleModel.getActions());
 
-        ruleSet.add(ruleData);
+        ruleMap.put(ruleData.getRuleID(), ruleData);
 
         // Create ESPER statement
         EPStatement stmt = ruleData.createEsperStatement(epService);
 
         // Attach actions to statement
         for (String actionID : ruleData.getActions()){
-            for (Action action : actionSet){
-                if (actionID.equals(action.getActionID())){
-                    stmt.addListener(action);
-                }
+            if (actionMap.containsKey(actionID)){
+                stmt.addListener(actionMap.get(actionID));
+            }
+            else {
+                System.err.println(actionID + "is an undefined action. " +
+                                "Rule with ID: " + ruleID + " will not contain this action.");
             }
         }
     }

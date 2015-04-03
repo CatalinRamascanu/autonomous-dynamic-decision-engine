@@ -1,12 +1,12 @@
 package com.adobe.primetime.adde.rules;
 
-import com.adobe.primetime.adde.input.DataType;
 import com.adobe.primetime.adde.input.InputData;
 import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.soda.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
@@ -20,11 +20,11 @@ public class RuleData {
     private SelectClause selectClause;
     private FromClause fromClause;
     private Expression whereClauseExpr;
-    private Set<InputData> inputSet;
+    private Map<String,InputData> inputMap;
     private List<String> actions;
 
-    public RuleData(Set<InputData> inputSet) {
-        this.inputSet = inputSet;
+    public RuleData(Map<String,InputData> inputMap) {
+        this.inputMap = inputMap;
     }
 
     public void setRuleID(String ruleID) {
@@ -263,7 +263,8 @@ public class RuleData {
 
     // The method checks if str is a property. If yes, it will return the property type else null.
     private Object getPropertyType(String str){
-        for (InputData input : inputSet){
+        for (String inputID : inputMap.keySet()){
+            InputData input = inputMap.get(inputID);
             // Iterate data types
             if (input.getTypeMap().containsKey(str)){
                 return input.getTypeMap().get(str);

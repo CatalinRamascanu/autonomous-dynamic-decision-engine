@@ -1,7 +1,6 @@
 package com.adobe.primetime.adde.configuration;
 
 import com.adobe.primetime.adde.configuration.json.*;
-import com.adobe.primetime.adde.input.DataType;
 import com.adobe.primetime.adde.input.InputData;
 import com.adobe.primetime.adde.output.Action;
 import com.adobe.primetime.adde.output.PrintMessageAction;
@@ -15,8 +14,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by ramascan on 26/03/15.
@@ -24,9 +23,9 @@ import java.util.Set;
 public class ConfigurationParser {
     private String filePath;
 
-    private Set<InputData> inputSet = new HashSet();
-    private Set<RuleData> ruleSet = new HashSet();
-    private Set<Action> actionSet = new HashSet();
+    private Map<String,InputData> inputMap = new HashMap();
+    private Map<String,RuleData> ruleMap = new HashMap();
+    private Map<String,Action> actionMap = new HashMap();
 
     private ConfigurationJson conf;
 
@@ -34,16 +33,16 @@ public class ConfigurationParser {
         this.filePath = filePath;
     }
 
-    public Set<InputData> getInputSet() {
-        return inputSet;
+    public Map<String,InputData> getInputMap() {
+        return inputMap;
     }
 
-    public Set<RuleData> getRuleSet() {
-        return ruleSet;
+    public Map<String,RuleData> getRuleMap() {
+        return ruleMap;
     }
 
-    public Set<Action> getActionSet() {
-        return actionSet;
+    public Map<String,Action> getActionMap() {
+        return actionMap;
     }
 
     public void parseJsonAndValidate() throws IOException {
@@ -82,7 +81,7 @@ public class ConfigurationParser {
                 inputData.addDataType(dataName,dataType);
             }
 
-            inputSet.add(inputData);
+            inputMap.put(inputData.getInputID(), inputData);
         }
 
         // Action Set
@@ -114,13 +113,13 @@ public class ConfigurationParser {
                     //TODO: Message field is not specified.
                 }
 
-                actionSet.add(action);
+                actionMap.put(action.getActionID(), action);
             }
         }
 
         // Rule Set
         for (RuleJson ruleJson : conf.getRuleJson()){
-            RuleData ruleData = new RuleData(inputSet);
+            RuleData ruleData = new RuleData(inputMap);
             ruleData.setRuleID(ruleJson.getRuleID());
 
             if (ruleData.getRuleID().length() == 0){
@@ -132,14 +131,14 @@ public class ConfigurationParser {
             ruleData.createWhereClause(ruleJson.getCondition());
 
             for (String action : ruleJson.getActions()){
-                if (!actionSet.contains(action)){
+                if (!actionMap.containsKey(action)){
                     // TODO: The action does not exist. It was not defined.
                 }
             }
 
             ruleData.setActions(ruleJson.getActions());
 
-            ruleSet.add(ruleData);
+            ruleMap.put(ruleData.getRuleID(), ruleData);
         }
     }
 

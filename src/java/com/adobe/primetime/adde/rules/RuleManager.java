@@ -2,32 +2,28 @@ package com.adobe.primetime.adde.rules;
 
 import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPStatement;
-import com.espertech.esper.client.EventBean;
-import com.espertech.esper.client.UpdateListener;
 import com.espertech.esper.client.soda.*;
-import com.adobe.primetime.adde.input.DataType;
-import com.adobe.primetime.adde.input.InputData;
 import com.adobe.primetime.adde.output.Action;
 
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
 /**
  * Created by ramascan on 18/03/15.
  * RuleManager is responsible with adding rules to ESPER Rule Engine.
  */
 public class RuleManager {
-    private Set<RuleData> ruleSet;
-    private Set<Action> actionSet;
+    private Map<String,RuleData> ruleMap;
+    private Map<String,Action> actionMap;
 
-    public RuleManager(Set<RuleData> ruleSet, Set<Action> actionSet) {
-        this.ruleSet = ruleSet;
-        this.actionSet = actionSet;
+    public RuleManager(Map<String,RuleData> ruleMap, Map<String,Action> actionMap) {
+        this.ruleMap = ruleMap;
+        this.actionMap = actionMap;
     }
 
     public void addRulesToEngine(EPServiceProvider epService){
-        for (RuleData ruleData : ruleSet){
+        for (String ruleID : ruleMap.keySet()){
+            RuleData ruleData = ruleMap.get(ruleID);
             EPStatementObjectModel model = new EPStatementObjectModel();
 
             // Set clauses
@@ -40,10 +36,11 @@ public class RuleManager {
 
             // Attach actions to statement
             for (String actionID : ruleData.getActions()){
-                for (Action action : actionSet){
-                    if (actionID.equals(action.getActionID())){
-                        stmt.addListener(action);
-                    }
+                if (actionMap.containsKey(actionID)){
+                    stmt.addListener(actionMap.get(actionID));
+                }
+                else {
+                    System.err.println(actionID + "is an undefined action.");
                 }
             }
         }
