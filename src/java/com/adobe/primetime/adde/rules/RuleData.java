@@ -81,7 +81,7 @@ public class RuleData {
         model.setSelectClause(selectClause);
         model.setFromClause(fromClause);
         model.setWhereClause(whereClauseExpr);
-        return epService.getEPAdministrator().create(model);
+        return epService.getEPAdministrator().create(model,ruleID);
     }
 
     // The condition field from the configuration file needs to be

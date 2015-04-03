@@ -32,7 +32,7 @@ public class RuleManager {
             model.setWhereClause(ruleData.getWhereClause());
 
             // Create statement
-            EPStatement stmt = epService.getEPAdministrator().create(model);
+            EPStatement stmt = epService.getEPAdministrator().create(model,ruleData.getRuleID());
 
             // Attach actions to statement
             for (String actionID : ruleData.getActions()){

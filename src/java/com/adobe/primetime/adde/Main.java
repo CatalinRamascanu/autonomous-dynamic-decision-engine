@@ -1,16 +1,8 @@
 package com.adobe.primetime.adde;
 
-import com.adobe.primetime.adde.configuration.*;
-import com.adobe.primetime.adde.configuration.json.ConfigurationJson;
-import com.adobe.primetime.adde.esper.EventDataManager;
-import com.adobe.primetime.adde.rules.RuleManager;
+import com.adobe.primetime.adde.output.ConditionListener;
 import com.adobe.primetime.adde.rules.RuleModel;
-import com.espertech.esper.client.Configuration;
-import com.espertech.esper.client.EPRuntime;
-import com.espertech.esper.client.EPServiceProvider;
-import com.espertech.esper.client.EPServiceProviderManager;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -37,6 +29,19 @@ public class Main {
         ruleModel.addAction("action_rule_02");
 
         decisionEngine.addNewRule(ruleModel);
+
+        // Add custom listener through api
+        decisionEngine.addConditionListener("rule_02", new ConditionListener() {
+            @Override
+            public String getListenerID() {
+                return "printHelloListener";
+            }
+
+            @Override
+            public void onConditionTrue() {
+                System.out.println("Hello");
+            }
+        });
 
         // We generate a few inputs...
         for (int i = 0; i < 20; i++) {

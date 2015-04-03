@@ -1,7 +1,5 @@
 package com.adobe.primetime.adde.output;
 
-import com.espertech.esper.client.EventBean;
-
 /**
  * Created by ramascan on 24/03/15.
  */
@@ -35,10 +33,4 @@ public class PrintMessageAction extends Action {
         }
     }
 
-    @Override
-    public void update(EventBean[] eventBeans, EventBean[] eventBeans1) {
-//        System.out.println("Action with ID: " + super.actionID + " fired.");
-        executeAction();
-//        System.out.println(eventBeans[0].getUnderlying());
-    }
 }

@@ -4,6 +4,8 @@ import com.adobe.primetime.adde.configuration.ConfigurationParser;
 import com.adobe.primetime.adde.esper.EventDataManager;
 import com.adobe.primetime.adde.input.InputData;
 import com.adobe.primetime.adde.output.Action;
+import com.adobe.primetime.adde.output.CallListenerAction;
+import com.adobe.primetime.adde.output.ConditionListener;
 import com.adobe.primetime.adde.rules.RuleData;
 import com.adobe.primetime.adde.rules.RuleManager;
 import com.adobe.primetime.adde.rules.RuleModel;
@@ -134,5 +136,28 @@ public class DecisionEngine {
                                 "Rule with ID: " + ruleID + " will not contain this action.");
             }
         }
+    }
+
+    public void addConditionListener(String ruleID, ConditionListener listener){
+        if (ruleID == null || listener == null){
+            throw new NullPointerException();
+        }
+
+        if (!ruleMap.containsKey(ruleID)){
+            System.err.println("Rule with ID: " + ruleID + "does not exist. Can not add condition listener.");
+            return;
+        }
+
+        if (actionMap.containsKey(listener.getListenerID())){
+            System.err.println("There is another action with the same ID: " + listener.getListenerID() +
+                    ". Can not add condition listener. ");
+            return;
+        }
+
+        CallListenerAction callListenerAction = new CallListenerAction(listener);
+
+        EPStatement stmt = epService.getEPAdministrator().getStatement(ruleID);
+        stmt.addListener(callListenerAction);
+
     }
 }

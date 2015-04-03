@@ -1,5 +1,6 @@
 package com.adobe.primetime.adde.output;
 
+import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
 
 /**
@@ -17,6 +18,14 @@ public abstract class Action implements UpdateListener {
     }
 
     public abstract void executeAction();
+
+    @Override
+    public void update(EventBean[] eventBeans, EventBean[] eventBeans1) {
+//        System.out.println("Action with ID: " + super.actionID + " fired.");
+        executeAction();
+//        System.out.println(eventBeans[0].getUnderlying());
+
+    }
 
     @Override
     public boolean equals(Object o) {
