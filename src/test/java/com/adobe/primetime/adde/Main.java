@@ -3,6 +3,9 @@ package com.adobe.primetime.adde;
 import com.adobe.primetime.adde.output.ConditionListener;
 import com.adobe.primetime.adde.rules.RuleModel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -11,14 +14,17 @@ import java.util.Random;
  * Created by ramascan on 10/03/15.
  */
 public class Main {
+    private static final Logger LOG = LoggerFactory.getLogger(Main.class);
+
     public static void main(String[] args){
+        LOG.info("Initializing Decision Engine...");
         DecisionEngine decisionEngine = new DecisionEngine();
         decisionEngine.setConfigurationFile("src/test/resources/configFile.json");
         decisionEngine.initializeEngine();
-
-        System.out.println("All running fine.");
+        LOG.info("Initialized.");
 
         // Add rule through api
+        LOG.info("Setting up rules and listeners...");
         RuleModel ruleModel = new RuleModel();
         ruleModel.setRuleID("rule_02");
         ruleModel.addActor("num_online_users");
@@ -43,6 +49,9 @@ public class Main {
             }
         });
 
+        LOG.info("Setup complete.");
+        LOG.info("Starting test...");
+
         // We generate a few inputs...
         for (int i = 0; i < 20; i++) {
             Map<String,Object> event = new HashMap();
@@ -57,6 +66,8 @@ public class Main {
             event.put("pass-status", "Success");
             decisionEngine.addInputData("adobeInput",event);
         }
+
+        LOG.info("Done.");
     }
 
     private static Random generator=new Random();
