@@ -13,7 +13,7 @@ import java.util.Random;
 public class Main {
     public static void main(String[] args){
         DecisionEngine decisionEngine = new DecisionEngine();
-        decisionEngine.setConfigurationFile("testZone/configFile.json");
+        decisionEngine.setConfigurationFile("src/test/resources/configFile.json");
         decisionEngine.initializeEngine();
 
         System.out.println("All running fine.");
