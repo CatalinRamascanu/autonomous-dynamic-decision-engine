@@ -11,6 +11,9 @@ public class ConfigurationJson {
     @Key("input")
     private Set<InputJson> inputJson;
 
+    @Key("fetchers")
+    private Set<FetcherJson> fetcherJson;
+
     @Key("rules")
     private Set<RuleJson> ruleJson;
 
@@ -19,6 +22,10 @@ public class ConfigurationJson {
 
     public Set<InputJson> getInputJson() {
         return inputJson;
+    }
+
+    public Set<FetcherJson> getFetcherJson() {
+        return fetcherJson;
     }
 
     public Set<RuleJson> getRuleJson() {

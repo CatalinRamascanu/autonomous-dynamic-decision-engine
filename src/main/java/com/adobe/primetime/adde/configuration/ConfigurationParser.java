@@ -1,6 +1,8 @@
 package com.adobe.primetime.adde.configuration;
 
 import com.adobe.primetime.adde.configuration.json.*;
+import com.adobe.primetime.adde.fetcher.FetcherData;
+import com.adobe.primetime.adde.fetcher.FetcherParser;
 import com.adobe.primetime.adde.input.InputData;
 import com.adobe.primetime.adde.output.Action;
 import com.adobe.primetime.adde.output.PrintMessageAction;
@@ -9,6 +11,7 @@ import com.adobe.primetime.adde.rules.RuleData;
 import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.ObjectParser;
+import org.apache.commons.validator.routines.UrlValidator;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,6 +27,7 @@ public class ConfigurationParser {
     private String filePath;
 
     private Map<String,InputData> inputMap = new HashMap();
+    private Map<String,FetcherData> fetcherMap = new HashMap();
     private Map<String,RuleData> ruleMap = new HashMap();
     private Map<String,Action> actionMap = new HashMap();
 
@@ -35,6 +39,10 @@ public class ConfigurationParser {
 
     public Map<String,InputData> getInputMap() {
         return inputMap;
+    }
+
+    public Map<String, FetcherData> getFetcherMap() {
+        return fetcherMap;
     }
 
     public Map<String,RuleData> getRuleMap() {
@@ -55,7 +63,7 @@ public class ConfigurationParser {
 
         // Validate and create sets
 
-        // Input Sets
+        // Input Map
         for (InputJson inputJson : conf.getInputJson()){
             InputData inputData = new InputData();
             inputData.setInputID(inputJson.getInputID());
@@ -84,7 +92,7 @@ public class ConfigurationParser {
             inputMap.put(inputData.getInputID(), inputData);
         }
 
-        // Action Set
+        // Action Map
         for (ActionJson actionJson : conf.getActionJson()){
 
             String actionID = actionJson.getActionID();
@@ -117,7 +125,56 @@ public class ConfigurationParser {
             }
         }
 
-        // Rule Set
+        // Fetcher Map
+        for (FetcherJson fetcherJson : conf.getFetcherJson()){
+            FetcherData inputFetcherData = new FetcherData();
+
+            inputFetcherData.setFetcherID(fetcherJson.getFetcherID());
+            if (inputFetcherData.getFetcherID() == ""){
+                // TODO: fetchID is empty string.
+            }
+
+            String inputID = fetcherJson.getReceiverInputID();
+            if (!inputMap.containsKey(inputID)){
+                // TODO: There is no input with this ID.
+            }
+            inputFetcherData.setReceiverInputID(inputID);
+
+            UrlValidator urlValidator = new UrlValidator();
+            if (!urlValidator.isValid(fetcherJson.getUrl())){
+                // TODO: URL Fetcher is not valid.
+            }
+            inputFetcherData.setUrl(fetcherJson.getUrl());
+
+            String interval = fetcherJson.getInterval();
+            long seconds = convertIntervalToSeconds(interval);
+            if (seconds == -1){
+                // TODO: Failed conversion to seconds.
+            }
+            inputFetcherData.setInterval(seconds);
+
+            int numOfFetches = 0;
+            try{
+                numOfFetches = Integer.parseInt(fetcherJson.getNumOfFetches());
+            }
+            catch (NumberFormatException e){
+                // TODO: "num-of-fetches" is not an integer number.
+            }
+            if (numOfFetches < 0){
+                // TODO: "num-of-fetches" can not be negative.
+            }
+            inputFetcherData.setNumOfFetches(numOfFetches);
+
+            String fetcherParser = fetcherJson.getFetcherParser();
+            if (fetcherParser != null){
+                FetcherParser fetcherParserInstance = instantiate(fetcherParser, FetcherParser.class);
+                inputFetcherData.setFetcherParser(fetcherParserInstance);
+            }
+
+            fetcherMap.put(inputFetcherData.getFetcherID(),inputFetcherData);
+        }
+
+        // Rule Map
         for (RuleJson ruleJson : conf.getRuleJson()){
             RuleData ruleData = new RuleData(inputMap);
             ruleData.setRuleID(ruleJson.getRuleID());
@@ -156,6 +213,77 @@ public class ConfigurationParser {
                 return Double.class;
             default:
                 return null;
+        }
+    }
+
+    private long convertIntervalToSeconds(String interval){
+        long timeInterval = 0;
+
+        String[] tokens = interval.split(" ");
+        if (tokens.length == 0){
+            System.err.println("No tokens have been used in interval time. " +
+                    "Please use one of the following tokens, separated by space: " +
+                    "<number>h <number>m <number>s. Ex: 1h 30m");
+            return -1;
+        }
+        if (tokens.length > 3){
+            System.err.println("Too many tokens in interval time. " +
+                    "It can be maximum 3. You inserted  " + tokens.length + " tokens.");
+            return -1;
+        }
+
+
+
+        for (int i = 0; i < tokens.length; i++){
+            String token = tokens[i];
+            char lastChar = token.charAt(token.length() - 1);
+            int multiplier;
+            switch (lastChar){
+                case 'h':
+                    multiplier = 360;
+                    break;
+                case 'm':
+                    multiplier = 60;
+                    break;
+                case 's':
+                    multiplier = 1;
+                    break;
+                default:
+                    System.err.println("Last char of token '" + token +"' is not valid. " +
+                            "It should be one of the following: h,m,s");
+                    return -1;
+            }
+
+            String numberPart = token.substring(0,token.length() - 1);
+            long number = 0;
+            try{
+                number = Long.parseLong(numberPart);
+            }
+            catch (NumberFormatException e){
+                System.err.println("A token contains the following number '" + numberPart + "' which is not valid.");
+                return -1;
+            }
+            if (number < 0){
+                System.err.println("You can not pass a negative number to a token of the interval time for fetcher. " +
+                        "Number: " + number);
+                return -1;
+            }
+
+            timeInterval = number * multiplier;
+        }
+
+        return timeInterval;
+    }
+
+    public <T> T instantiate(final String className, final Class<T> type){
+        try{
+            return type.cast(Class.forName(className).newInstance());
+        } catch(final InstantiationException e){
+            throw new IllegalStateException(e);
+        } catch(final IllegalAccessException e){
+            throw new IllegalStateException(e);
+        } catch(final ClassNotFoundException e){
+            throw new IllegalStateException(e);
         }
     }
 }

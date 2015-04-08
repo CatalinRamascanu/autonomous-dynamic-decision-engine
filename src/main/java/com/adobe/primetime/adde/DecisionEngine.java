@@ -2,7 +2,9 @@ package com.adobe.primetime.adde;
 
 import com.adobe.primetime.adde.configuration.ConfigurationParser;
 import com.adobe.primetime.adde.esper.EventDataManager;
+import com.adobe.primetime.adde.fetcher.FetcherData;
 import com.adobe.primetime.adde.input.InputData;
+import com.adobe.primetime.adde.fetcher.FetcherManager;
 import com.adobe.primetime.adde.output.Action;
 import com.adobe.primetime.adde.output.CallListenerAction;
 import com.adobe.primetime.adde.output.ConditionListener;
@@ -25,6 +27,7 @@ public class DecisionEngine {
     private EPRuntime epRuntime;
 
     private Map<String,InputData> inputMap;
+    private Map<String, FetcherData> fetcherMap;
     private Map<String,RuleData> ruleMap;
     private Map<String,Action> actionMap;
 
@@ -42,6 +45,7 @@ public class DecisionEngine {
         try {
             confParser.parseJsonAndValidate();
             inputMap = confParser.getInputMap();
+            fetcherMap = confParser.getFetcherMap();
             ruleMap = confParser.getRuleMap();
             actionMap = confParser.getActionMap();
         } catch (IOException e) {
@@ -53,6 +57,11 @@ public class DecisionEngine {
 
         // Define event types
         EventDataManager.addInputToConfig(cepConfig, inputMap);
+
+        // Define fetchers
+        FetcherManager fetcherManager = new FetcherManager();
+        fetcherManager.setFetcherMap(fetcherMap,inputMap);
+        fetcherManager.startFetchers();
 
         // Setup the rule engine
         epService = EPServiceProviderManager.getProvider("esperEngine", cepConfig);
