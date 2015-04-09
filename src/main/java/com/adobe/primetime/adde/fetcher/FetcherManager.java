@@ -1,6 +1,7 @@
 package com.adobe.primetime.adde.fetcher;
 
 import com.adobe.primetime.adde.input.InputData;
+import com.espertech.esper.client.EPRuntime;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,10 +15,12 @@ public class FetcherManager {
     private Map<String,FetcherData> fetcherMap;
     private Map<String,InputData> inputMap;
     private ArrayList<Timer> timers = new ArrayList<>();
+    private EPRuntime epRuntime;
 
-    public void setFetcherMap(Map<String, FetcherData> fetcherMap, Map<String,InputData> inputMap) {
+    public FetcherManager(Map<String, FetcherData> fetcherMap, Map<String, InputData> inputMap, EPRuntime epRuntime) {
         this.fetcherMap = fetcherMap;
         this.inputMap = inputMap;
+        this.epRuntime = epRuntime;
     }
 
     public void startFetchers(){
@@ -27,7 +30,7 @@ public class FetcherManager {
             InputData inputData = inputMap.get(fetcherData.getReceiverInputID());
             Timer timer = new Timer();
 
-            FetcherAgent fetcherAgent = new FetcherAgent(inputData,fetcherData,timer);
+            FetcherAgent fetcherAgent = new FetcherAgent(epRuntime,inputData,fetcherData,timer);
             timer.schedule(fetcherAgent,new Date(), fetcherData.getInterval() * 1000);
 
             timers.add(timer);

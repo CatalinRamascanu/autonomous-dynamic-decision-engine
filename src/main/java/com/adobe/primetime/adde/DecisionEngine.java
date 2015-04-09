@@ -58,11 +58,6 @@ public class DecisionEngine {
         // Define event types
         EventDataManager.addInputToConfig(cepConfig, inputMap);
 
-        // Define fetchers
-        FetcherManager fetcherManager = new FetcherManager();
-        fetcherManager.setFetcherMap(fetcherMap,inputMap);
-        fetcherManager.startFetchers();
-
         // Setup the rule engine
         epService = EPServiceProviderManager.getProvider("esperEngine", cepConfig);
 
@@ -71,9 +66,13 @@ public class DecisionEngine {
         ruleManager.addRulesToEngine(epService);
 
         epRuntime= epService.getEPRuntime();
+
+        // Define fetchers
+        FetcherManager fetcherManager = new FetcherManager(fetcherMap,inputMap,epRuntime);
+        fetcherManager.startFetchers();
     }
 
-    public void addInputData(String inputId, Map<String, Object> dataMap){
+        public void addInputData(String inputId, Map<String, Object> dataMap){
         if (inputId == null || dataMap == null){
             throw new NullPointerException();
         }

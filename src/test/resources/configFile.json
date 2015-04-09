@@ -8,6 +8,23 @@
         {"name":"wrong_pass_rate", "type":"float"},
         {"name":"pass-status", "type":"string"}
       ]
+    },
+    {
+      "input-id":"esmInput",
+      "data":[
+        {"name":"authn-pending",      "type":"long"},
+        {"name":"clientless-tokens",  "type":"long"},
+        {"name":"authz-failed",       "type":"long"},
+        {"name":"media-tokens",       "type":"long"},
+        {"name":"authz-rejected",     "type":"long"},
+        {"name":"authz-latency",      "type":"long"},
+        {"name":"authn-successful",   "type":"long"},
+        {"name":"authn-attempts",     "type":"long"},
+        {"name":"year",               "type":"int"},
+        {"name":"authz-successful",   "type":"long"},
+        {"name":"clientless-failures","type":"long"},
+        {"name":"authz-attempts",     "type":"long"}
+      ]
     }
   ],
   "fetchers":[

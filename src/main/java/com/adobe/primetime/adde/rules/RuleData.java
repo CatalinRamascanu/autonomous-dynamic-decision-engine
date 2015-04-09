@@ -1,5 +1,6 @@
 package com.adobe.primetime.adde.rules;
 
+import com.adobe.primetime.adde.Utils;
 import com.adobe.primetime.adde.input.InputData;
 import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPStatement;
@@ -219,7 +220,7 @@ public class RuleData {
                 }
                 else{
                     if (propertyType1 == null && isNumeric(op1)){
-                        Object valueOp1 = castToType(op1,propertyType2);
+                        Object valueOp1 = Utils.castToType(op1, propertyType2);
 
                         if (valueOp1 == null){
                             //TODO: Invalid operator. Can not be cast to required property type.
@@ -230,7 +231,7 @@ public class RuleData {
                     }
                     else{
                         if (propertyType2 == null && isNumeric(op2)){
-                            Object valueOp2 = castToType(op2,propertyType1);
+                            Object valueOp2 = Utils.castToType(op2, propertyType1);
                             if (valueOp2 == null){
                                 //TODO: Invalid operator. Can not be cast to required property type.
                             }
@@ -314,29 +315,5 @@ public class RuleData {
             default:
                 return null;
         }
-    }
-
-    private Object castToType(String str, Object type){
-        if (type == String.class){
-            return str;
-        }
-
-        if (type == Integer.class){
-            return Integer.parseInt(str);
-        }
-
-        if (type == Long.class){
-            return Long.parseLong(str);
-        }
-
-        if (type == Float.class){
-            return Float.parseFloat(str);
-        }
-
-        if (type == Double.class){
-            return Double.parseDouble(str);
-        }
-
-        return null;
     }
 }
