@@ -1,6 +1,7 @@
 package com.adobe.primetime.adde.rules;
 
 import com.adobe.primetime.adde.Utils;
+import com.adobe.primetime.adde.exception.RuleException;
 import com.adobe.primetime.adde.input.InputData;
 import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPStatement;
@@ -104,13 +105,17 @@ public class RuleData {
             if (token.equals(")")){
 
                 if (operatorStack.isEmpty()){
-                    //TODO: Throw exception
+                    throw new RuleException(
+                            ruleID + ": Failed to parse condition field. Invalid format."
+                    );
                 }
 
                 String operator = operatorStack.pop();
                 while (!operator.equals("(")){
                     if (operatorStack.isEmpty()){
-                        //TODO: Throw exception
+                        throw new RuleException(
+                                ruleID + ": Failed to parse condition field. Invalid format."
+                        );
                     }
 
                     postFix.append(operator);
@@ -145,9 +150,11 @@ public class RuleData {
 
                 if (operator.equals("&&") || operator.equals("||")
                         || operator.equals("(")){
-                    // TODO: Invalid format.
                     // There should always be an operator (>,<,= etc.) in the stack
                     // when meeting and/or.
+                    throw new RuleException(
+                            ruleID + ": Failed to parse condition field. Invalid format."
+                    );
                 }
 
                 postFix.append(operator);
@@ -166,7 +173,9 @@ public class RuleData {
             String operator = operatorStack.pop();
 
             if (operator.equals("(")){
-                // TODO: Invalid format.
+                throw new RuleException(
+                        ruleID + ": Failed to parse condition field. Invalid format."
+                );
             }
 
             postFix.append(operator);
@@ -215,7 +224,10 @@ public class RuleData {
                         expressionStack.push(getExprForProperties(token,op1,op2));
                     }
                     else {
-                        //TODO: Invalid expression. Types are different
+                        throw new RuleException(
+                                ruleID + ": Invalid condition expression. Types are different for '" + op1 +"' and '"
+                                        + op2 + "'."
+                        );
                     }
                 }
                 else{
@@ -223,7 +235,10 @@ public class RuleData {
                         Object valueOp1 = Utils.castToType(op1, propertyType2);
 
                         if (valueOp1 == null){
-                            //TODO: Invalid operator. Can not be cast to required property type.
+                            throw new RuleException(
+                                    ruleID + ": Invalid condition expression. Operator '" + op1 +"' "
+                                           + "' can not be cast to required property type."
+                            );
                         }
                         else{
                             expressionStack.push(getExprForPropWithValue(token,op2,valueOp1));
@@ -233,14 +248,20 @@ public class RuleData {
                         if (propertyType2 == null && isNumeric(op2)){
                             Object valueOp2 = Utils.castToType(op2, propertyType1);
                             if (valueOp2 == null){
-                                //TODO: Invalid operator. Can not be cast to required property type.
+                                throw new RuleException(
+                                        ruleID + ": Invalid condition expression. Operator '" + op2 +"' "
+                                                + "' can not be cast to required property type."
+                                );
                             }
                             else{
                                 expressionStack.push(getExprForPropWithValue(token,op1,valueOp2));
                             }
                         }
                         else{
-                            // TODO: Invalid operators. Both are not properties or numeric values.
+                            throw new RuleException(
+                                    ruleID + ": Invalid condition expression. Both operators '" + op1 +"' and '"
+                                            + op2 + "' are not properties or numeric values."
+                            );
                         }
                     }
                 }
@@ -256,7 +277,9 @@ public class RuleData {
         // After processing all tokens, in the stack should be only one expression.
         // If not, then postFixString is invalid.
         if (expressionStack.size() != 1){
-            // TODO: Throw exception
+            throw new RuleException(
+                    ruleID + ": Failed to convert condition string to proper format. Internal error."
+            );
         }
 
         return (Expression) expressionStack.pop();

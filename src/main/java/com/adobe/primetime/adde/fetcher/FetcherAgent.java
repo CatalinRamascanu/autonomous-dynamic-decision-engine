@@ -1,8 +1,10 @@
 package com.adobe.primetime.adde.fetcher;
 
 import com.adobe.primetime.adde.Utils;
+import com.adobe.primetime.adde.exception.FetcherException;
 import com.adobe.primetime.adde.input.InputData;
 import com.espertech.esper.client.EPRuntime;
+import com.espertech.esper.util.JsonUtil;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
@@ -30,6 +32,9 @@ public class FetcherAgent extends TimerTask {
     private EPRuntime epRuntime;
 
     public FetcherAgent(EPRuntime epRuntime, InputData inputData, FetcherData fetcherData, Timer containerTimer) {
+        if (epRuntime == null || inputData == null || fetcherData == null || containerTimer == null){
+            throw new NullPointerException();
+        }
         this.epRuntime = epRuntime;
         this.inputData = inputData;
         this.fetcherData = fetcherData;
@@ -47,12 +52,8 @@ public class FetcherAgent extends TimerTask {
 
     @Override
     public void run() {
-        if (containerTimer == null){
-            // TODO: Throw exeception for null timer;
-        }
-
         if (executionCount < fetcherData.getNumOfFetches()){
-            System.out.println("Fetcher with ID: " + fetcherData.getFetcherID() + " will execute now...");
+                System.out.println("Fetcher with ID: " + fetcherData.getFetcherID() + " will execute now...");
             executionCount++;
 
             //Fetching data
@@ -65,14 +66,24 @@ public class FetcherAgent extends TimerTask {
                 e.printStackTrace();
             }
 
-            // TODO: Check if it is valid JSON
             System.out.println("We fetched: " + fetchedJson);
 
             FetcherParser fetcherParser = fetcherData.getFetcherParser();
             if (fetcherParser != null){
                 fetchedJson = fetcherParser.parseInputJson(fetchedJson);
-                // TODO: Check if new fetchedJSON is valid.
             }
+
+            // Checking if JSON is valid.
+            try{
+                new JSONParser().parse(fetchedJson);
+            }
+            catch (ParseException pe){
+                throw new FetcherException(
+                        fetcherData.getFetcherID() + ": Fetched data is not a valid JSON.",
+                        pe
+                );
+            }
+
 
             Map<String,Object> typeMap = inputData.getTypeMap();
 
@@ -87,14 +98,21 @@ public class FetcherAgent extends TimerTask {
 
                     for (Object objKey : dataObject.keySet()){
                         String fieldName = (String) objKey;
+                        // TODO: Maybe do not throw exceptions when fetching data?
+                        // We would not want to stop the whole process if a fetcher was badly configured.
                         if (!typeMap.containsKey(fieldName)){
-                            System.err.print("Fetched JSON contains an input field name that does not exist.");
-                            return;
+                            throw new FetcherException(
+                                    fetcherData.getFetcherID() + ": Fetched JSON contains an input field name that was not" +
+                                            "defined in input " + fetcherData.getReceiverInputID()
+                            );
                         }
                         Object fieldValue = Utils.castToType((String) dataObject.get(fieldName), typeMap.get(fieldName));
                         if (fieldValue == null){
-                            System.err.println("Invalid field value. Can not be cast to apropriate type of " + fieldName);
-                            return;
+                            throw new FetcherException(
+                                    fetcherData.getFetcherID() + ": Invalid value '" + (String) dataObject.get(fieldName) +
+                                            " for field " + fieldName + ". Can not be cast to apropriate type."
+
+                            );
                         }
 
                         dataMap.put(fieldName,fieldValue);

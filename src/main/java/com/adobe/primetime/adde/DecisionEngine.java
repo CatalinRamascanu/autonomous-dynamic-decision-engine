@@ -42,16 +42,12 @@ public class DecisionEngine {
         }
 
         confParser = new ConfigurationParser(configurationFilePath);
-        try {
-            confParser.parseJsonAndValidate();
-            inputMap = confParser.getInputMap();
-            fetcherMap = confParser.getFetcherMap();
-            ruleMap = confParser.getRuleMap();
-            actionMap = confParser.getActionMap();
-        } catch (IOException e) {
-            System.err.println("Could not parse configuration file.");
-            e.printStackTrace();
-        }
+        confParser.parseJsonAndValidate();
+
+        inputMap = confParser.getInputMap();
+        fetcherMap = confParser.getFetcherMap();
+        ruleMap = confParser.getRuleMap();
+        actionMap = confParser.getActionMap();
 
         Configuration cepConfig = new Configuration();
 

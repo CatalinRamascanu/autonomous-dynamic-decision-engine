@@ -1,6 +1,7 @@
 package com.adobe.primetime.adde.configuration;
 
 import com.adobe.primetime.adde.configuration.json.*;
+import com.adobe.primetime.adde.exception.ConfigurationException;
 import com.adobe.primetime.adde.fetcher.FetcherData;
 import com.adobe.primetime.adde.fetcher.FetcherParser;
 import com.adobe.primetime.adde.input.InputData;
@@ -53,13 +54,18 @@ public class ConfigurationParser {
         return actionMap;
     }
 
-    public void parseJsonAndValidate() throws IOException {
+    public void parseJsonAndValidate(){
 
         // Parse Json
         ObjectParser parser = new JsonObjectParser(new JacksonFactory());
-        InputStream input = new FileInputStream(filePath);
-        InputStreamReader reader = new InputStreamReader(input);
-        conf = parser.parseAndClose(reader, ConfigurationJson.class);
+        try {
+            InputStream input = new FileInputStream(filePath);
+            InputStreamReader reader = new InputStreamReader(input);
+            conf = parser.parseAndClose(reader, ConfigurationJson.class);
+        }
+        catch (IOException e){
+            throw new ConfigurationException("Configuration file is not valid.",e);
+        }
 
         // Validate and create sets
 
@@ -69,7 +75,7 @@ public class ConfigurationParser {
             inputData.setInputID(inputJson.getInputID());
 
             if (inputData.getInputID().length() == 0){
-                // TODO: InputID is empty string.
+                throw new ConfigurationException("Input-id can not be an empty string.");
             }
 
             for (InputDataJson inputDataJson : inputJson.getData()){
@@ -78,12 +84,16 @@ public class ConfigurationParser {
 
                 dataName = inputDataJson.getName();
                 if (dataName == null || dataName.length() == 0){
-                    // TODO: DataType name is null or empty string.
+                    throw new ConfigurationException(
+                            inputData.getInputID() + ": A data field contains an invalid name. Either null or empty string."
+                    );
                 }
 
                 dataType = getTypeObject(inputDataJson.getType());
                 if (dataType == null){
-                    // TODO: DataType type is invalid.
+                    throw new ConfigurationException(
+                            inputData.getInputID() + ": A data field contains an invalid type."
+                    );
                 }
 
                 inputData.addDataType(dataName,dataType);
@@ -97,7 +107,7 @@ public class ConfigurationParser {
 
             String actionID = actionJson.getActionID();
             if (actionID == ""){
-                // TODO: actionId is empty String.
+                throw new ConfigurationException("Action-id can not be an empty string.");
             }
 
             String actionType = actionJson.getActionType();
@@ -110,7 +120,9 @@ public class ConfigurationParser {
                     action.setTargetType(targetType);
                 }
                 else{
-                    //TODO: Target-type field is not specified.
+                    throw new ConfigurationException(
+                            action.getActionID() + ": That action type provided does not exist."
+                    );
                 }
 
                 String message = actionJson.getMessage();
@@ -118,7 +130,9 @@ public class ConfigurationParser {
                     action.setMessage(message);
                 }
                 else{
-                    //TODO: Message field is not specified.
+                    throw new ConfigurationException(
+                            action.getActionID() + ": Message field was not provided."
+                    );
                 }
 
                 actionMap.put(action.getActionID(), action);
@@ -127,60 +141,70 @@ public class ConfigurationParser {
 
         // Fetcher Map
         for (FetcherJson fetcherJson : conf.getFetcherJson()){
-            FetcherData inputFetcherData = new FetcherData();
+            FetcherData fetcherData = new FetcherData();
 
-            inputFetcherData.setFetcherID(fetcherJson.getFetcherID());
-            if (inputFetcherData.getFetcherID() == ""){
-                // TODO: fetchID is empty string.
+            fetcherData.setFetcherID(fetcherJson.getFetcherID());
+            if (fetcherData.getFetcherID() == ""){
+                throw new ConfigurationException("Fetcher-id can not be an empty string.");
             }
 
             String inputID = fetcherJson.getReceiverInputID();
             if (!inputMap.containsKey(inputID)){
-                // TODO: There is no input with this ID.
+                throw new ConfigurationException(
+                        fetcherData.getFetcherID() + ": Receiver-input-id contains an ID which does not exist."
+                );
             }
-            inputFetcherData.setReceiverInputID(inputID);
+            fetcherData.setReceiverInputID(inputID);
 
             UrlValidator urlValidator = new UrlValidator();
             if (!urlValidator.isValid(fetcherJson.getUrl())){
-                // TODO: URL Fetcher is not valid.
+                throw new ConfigurationException(
+                        fetcherData.getFetcherID() + ": URL provided is invalid."
+                );
             }
-            inputFetcherData.setUrl(fetcherJson.getUrl());
+            fetcherData.setUrl(fetcherJson.getUrl());
 
             String interval = fetcherJson.getInterval();
             long seconds = convertIntervalToSeconds(interval);
             if (seconds == -1){
-                // TODO: Failed conversion to seconds.
+                throw new ConfigurationException(
+                        fetcherData.getFetcherID() + ": Interval time provided is not in the correct format."
+                );
             }
-            inputFetcherData.setInterval(seconds);
+            fetcherData.setInterval(seconds);
 
             int numOfFetches = 0;
             try{
                 numOfFetches = Integer.parseInt(fetcherJson.getNumOfFetches());
             }
             catch (NumberFormatException e){
-                // TODO: "num-of-fetches" is not an integer number.
+                throw new ConfigurationException(
+                        fetcherData.getFetcherID() + ": Num-of-fetches is not an integer number."
+                );
             }
             if (numOfFetches < 0){
-                // TODO: "num-of-fetches" can not be negative.
+                throw new ConfigurationException(
+                        fetcherData.getFetcherID() + ": Num-of-fetches can not be a negative number."
+                );
             }
-            inputFetcherData.setNumOfFetches(numOfFetches);
+            fetcherData.setNumOfFetches(numOfFetches);
 
             String fetcherParser = fetcherJson.getFetcherParser();
             if (fetcherParser != null){
                 FetcherParser fetcherParserInstance = instantiate(fetcherParser, FetcherParser.class);
-                inputFetcherData.setFetcherParser(fetcherParserInstance);
+                fetcherData.setFetcherParser(fetcherParserInstance);
             }
 
-            fetcherMap.put(inputFetcherData.getFetcherID(),inputFetcherData);
+            fetcherMap.put(fetcherData.getFetcherID(),fetcherData);
         }
 
         // Rule Map
         for (RuleJson ruleJson : conf.getRuleJson()){
             RuleData ruleData = new RuleData(inputMap);
-            ruleData.setRuleID(ruleJson.getRuleID());
 
+            ruleData.setRuleID(ruleJson.getRuleID());
             if (ruleData.getRuleID().length() == 0){
-                // TODO: RuleID is empty string.
+                throw new ConfigurationException("Rule-id can not be an empty string.");
             }
 
             ruleData.createSelectClause(ruleJson.getActors());
@@ -189,12 +213,13 @@ public class ConfigurationParser {
 
             for (String action : ruleJson.getActions()){
                 if (!actionMap.containsKey(action)){
-                    // TODO: The action does not exist. It was not defined.
+                    throw new ConfigurationException(
+                            ruleData.getRuleID() + ": Action with id: " + action + " does not exist."
+                    );
                 }
             }
 
             ruleData.setActions(ruleJson.getActions());
-
             ruleMap.put(ruleData.getRuleID(), ruleData);
         }
     }
@@ -231,8 +256,6 @@ public class ConfigurationParser {
                     "It can be maximum 3. You inserted  " + tokens.length + " tokens.");
             return -1;
         }
-
-
 
         for (int i = 0; i < tokens.length; i++){
             String token = tokens[i];
