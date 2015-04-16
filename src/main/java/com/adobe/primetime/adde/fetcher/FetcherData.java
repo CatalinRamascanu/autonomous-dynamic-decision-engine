@@ -2,9 +2,6 @@ package com.adobe.primetime.adde.fetcher;
 
 import com.google.api.client.util.Key;
 
-/**
- * Created by ramascan on 08/04/15.
- */
 public class FetcherData {
     private String fetcherID;
     private String receiverInputID;

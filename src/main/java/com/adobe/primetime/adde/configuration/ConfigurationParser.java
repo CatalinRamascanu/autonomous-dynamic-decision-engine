@@ -21,9 +21,6 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by ramascan on 26/03/15.
- */
 public class ConfigurationParser {
     private String filePath;
 

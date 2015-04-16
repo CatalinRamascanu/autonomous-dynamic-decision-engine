@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Created by ramascan on 18/03/15.
  * RuleManager is responsible with adding rules to ESPER Rule Engine.
  */
 public class RuleManager {

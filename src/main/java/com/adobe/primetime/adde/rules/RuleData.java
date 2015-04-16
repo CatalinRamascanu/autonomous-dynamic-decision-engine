@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.Stack;
 
 /**
- * Created by ramascan on 18/03/15.
  * Represents a rule in a proper format that is accepted by ESPER Rule Engine.
  * It uses the fields from RuleJson in order to properly convert to the new format.
  */

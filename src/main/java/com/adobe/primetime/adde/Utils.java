@@ -1,8 +1,5 @@
 package com.adobe.primetime.adde;
 
-/**
- * Created by ramascan on 09/04/15.
- */
 public class Utils {
     public static Object castToType(String str, Object type){
         if (type == String.class){

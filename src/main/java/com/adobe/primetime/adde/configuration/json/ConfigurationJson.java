@@ -4,9 +4,6 @@ import com.google.api.client.util.Key;
 
 import java.util.Set;
 
-/**
- * Created by ramascan on 26/03/15.
- */
 public class ConfigurationJson {
     @Key("input")
     private Set<InputJson> inputJson;

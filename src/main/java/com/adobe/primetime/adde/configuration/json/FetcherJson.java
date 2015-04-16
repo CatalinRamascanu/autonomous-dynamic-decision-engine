@@ -4,9 +4,6 @@ import com.google.api.client.util.Key;
 
 import javax.annotation.Nullable;
 
-/**
- * Created by ramascan on 07/04/15.
- */
 public class FetcherJson {
     @Key("fetcher-id")
     private String fetcherID;

@@ -3,9 +3,6 @@ package com.adobe.primetime.adde.output;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
 
-/**
- * Created by ramascan on 24/03/15.
- */
 public abstract class Action implements UpdateListener {
     protected String actionID;
 

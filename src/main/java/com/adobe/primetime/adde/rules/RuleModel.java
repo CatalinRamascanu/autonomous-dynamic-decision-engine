@@ -3,7 +3,6 @@ package com.adobe.primetime.adde.rules;
 import java.util.ArrayList;
 
 /**
- * Created by ramascan on 02/04/15.
  * It is used to add new rules dynamically into the engine.
  */
 public class RuleModel {

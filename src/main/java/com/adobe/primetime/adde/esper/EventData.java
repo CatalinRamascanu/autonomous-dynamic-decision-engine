@@ -4,9 +4,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-/**
- * Created by ramascan on 17/03/15.
- */
 public class EventData {
     private HashSet<String> nameSet;
     private Map<String,String> dataMap;

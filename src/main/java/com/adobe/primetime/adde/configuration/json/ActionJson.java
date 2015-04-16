@@ -4,9 +4,6 @@ import com.google.api.client.util.Key;
 
 import javax.annotation.Nullable;
 
-/**
- * Created by ramascan on 27/03/15.
- */
 public class ActionJson {
     @Key("action-id")
     private String actionID;

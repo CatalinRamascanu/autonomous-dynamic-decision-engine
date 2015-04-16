@@ -1,7 +1,6 @@
 package com.adobe.primetime.adde.output;
 
 /**
- * Created by ramascan on 03/04/15.
  * Users can implement this interface to define their own custom condition listener.
  */
 public interface ConditionListener {

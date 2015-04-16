@@ -4,9 +4,6 @@ import com.google.api.client.util.Key;
 
 import java.util.List;
 
-/**
- * Created by ramascan on 27/03/15.
- */
 public class RuleJson {
     @Key("rule-id")
     private String ruleID;

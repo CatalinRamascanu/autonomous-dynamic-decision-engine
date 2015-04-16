@@ -8,9 +8,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Timer;
 
-/**
- * Created by ramascan on 07/04/15.
- */
 public class FetcherManager {
     private Map<String,FetcherData> fetcherMap;
     private Map<String,InputData> inputMap;

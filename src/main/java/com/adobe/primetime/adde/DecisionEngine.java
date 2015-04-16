@@ -16,9 +16,6 @@ import com.espertech.esper.client.*;
 import java.io.IOException;
 import java.util.*;
 
-/**
- * Created by ramascan on 01/04/15.
- */
 public class DecisionEngine {
 
     private String configurationFilePath;

@@ -1,8 +1,5 @@
 package com.adobe.primetime.adde.output;
 
-/**
- * Created by ramascan on 24/03/15.
- */
 public class PrintMessageAction extends Action {
     private enum TargetType {
         STDOUT,

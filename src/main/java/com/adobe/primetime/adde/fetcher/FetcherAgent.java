@@ -21,9 +21,6 @@ import javax.rmi.CORBA.Util;
 import java.io.IOException;
 import java.util.*;
 
-/**
- * Created by ramascan on 08/04/15.
- */
 public class FetcherAgent extends TimerTask {
     private FetcherData fetcherData;
     private int executionCount = 0;

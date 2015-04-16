@@ -2,9 +2,6 @@ package com.adobe.primetime.adde.configuration.json;
 
 import com.google.api.client.util.Key;
 
-/**
- * Created by ramascan on 27/03/15.
- */
 public class InputDataJson {
     @Key("name")
     private String name;
