@@ -4,7 +4,6 @@ import com.adobe.primetime.adde.Utils;
 import com.adobe.primetime.adde.exception.FetcherException;
 import com.adobe.primetime.adde.input.InputData;
 import com.espertech.esper.client.EPRuntime;
-import com.espertech.esper.util.JsonUtil;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
@@ -17,7 +16,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import javax.rmi.CORBA.Util;
 import java.io.IOException;
 import java.util.*;
 

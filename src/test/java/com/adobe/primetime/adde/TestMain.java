@@ -5,15 +5,17 @@ import com.adobe.primetime.adde.rules.RuleModel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.annotations.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-public class Main {
-    private static final Logger LOG = LoggerFactory.getLogger(Main.class);
+public class TestMain {
+    private static final Logger LOG = LoggerFactory.getLogger(TestMain.class);
 
-    public static void main(String[] args){
+    @Test
+    public static void testMain(){
         LOG.info("Initializing Decision Engine...");
         DecisionEngine decisionEngine = new DecisionEngine();
         decisionEngine.setConfigurationFile("src/test/resources/configFile.json");
