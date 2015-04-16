@@ -1,11 +1,13 @@
 package com.adobe.primetime.adde.rules;
 
 import com.adobe.primetime.adde.Utils;
+import com.adobe.primetime.adde.configuration.json.RuleJson;
 import com.adobe.primetime.adde.exception.RuleException;
 import com.adobe.primetime.adde.input.InputData;
 import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.soda.*;
+import org.json.simple.parser.ParseException;
 
 import java.util.List;
 import java.util.Map;
@@ -14,26 +16,110 @@ import java.util.Stack;
 
 /**
  * Represents a rule in a proper format that is accepted by ESPER Rule Engine.
- * It uses the fields from RuleJson in order to properly convert to the new format.
+ * It uses the fields from RuleJson/RuleModel in order to properly convert to the new format.
  */
 public class RuleData {
-    private String ruleID;
+    private RuleJson ruleJson;
+    private RuleModel ruleModel;
     private SelectClause selectClause;
     private FromClause fromClause;
     private Expression whereClauseExpr;
     private Map<String,InputData> inputMap;
-    private List<String> actions;
 
-    public RuleData(Map<String,InputData> inputMap) {
+    public RuleData(Map<String,InputData> inputMap, RuleJson ruleJson){
         this.inputMap = inputMap;
+        this.ruleJson = ruleJson;
+
+        createFromClause(ruleJson.getInputDomains());
+        createSelectClause(ruleJson.getActors(),ruleJson.getInputDomains());
+        createWhereClause(ruleJson.getCondition());
     }
 
-    public void setRuleID(String ruleID) {
-        this.ruleID = ruleID;
+    public RuleData(Map<String,InputData> inputMap, RuleModel ruleModel){
+        this.inputMap = inputMap;
+        this.ruleModel = ruleModel;
+
+        createFromClause(ruleModel.getInputDomains());
+        createSelectClause(ruleModel.getActors(),ruleModel.getInputDomains());
+        createWhereClause(ruleModel.getCondition());
     }
 
-    public void createSelectClause(List<String> actors) {
-        // TODO: Check if actor is valid;
+
+    public String getRuleID(){
+        if (ruleJson != null){
+            return ruleJson.getRuleID();
+        }
+        else if (ruleModel != null){
+            return ruleModel.getRuleID();
+        }
+
+        return null;
+    }
+
+    public List<String> getInputDomains() {
+        if (ruleJson != null){
+            return ruleJson.getInputDomains();
+        }
+        else if (ruleModel != null){
+            return ruleModel.getInputDomains();
+        }
+
+        return null;
+    }
+
+    public List<String> getActions() {
+        if (ruleJson != null){
+            return ruleJson.getActions();
+        }
+        else if (ruleModel != null){
+            return ruleModel.getActions();
+        }
+
+        return null;
+    }
+
+    public EPStatement createAndAddStatementToEsper(EPServiceProvider epService){
+        EPStatementObjectModel model = new EPStatementObjectModel();
+        model.setSelectClause(selectClause);
+        model.setFromClause(fromClause);
+        model.setWhereClause(whereClauseExpr);
+        return epService.getEPAdministrator().create(model,getRuleID());
+    }
+
+    private void createFromClause(List<String>inputDomains) {
+        if (inputDomains.size() == 0){
+            throw new RuleException(
+                    getRuleID() + ": No input domains were inserted."
+            );
+        }
+
+        // Sanity check inputDomains
+        for (String inputDomain : inputDomains){
+            if (!inputMap.containsKey(inputDomain)){
+                throw new RuleException(
+                        getRuleID() + ": There is no input with ID: '" + inputDomain + "'."
+                );
+            }
+        }
+        // From clause
+        fromClause = FromClause.create();
+        for (String inputDomain : inputDomains){
+            fromClause.add(FilterStream.create(inputDomain));
+        }
+    }
+
+    private void createSelectClause(List<String> actors, List<String>inputDomains) {
+        // Actors sanity check
+        for (String actor : actors){
+            for (String inputDomain : inputDomains){
+                if (!inputMap.get(inputDomain).getTypeMap().containsKey(actor)){
+                    throw new RuleException(
+                            getRuleID() + ": Actor '" + actor + "' does not exist. It must be defined as a data field in " +
+                                    "an input domain."
+                    );
+                }
+            }
+        }
 
         // Select clause
         selectClause = SelectClause.create();
@@ -42,47 +128,9 @@ public class RuleData {
         }
     }
 
-    public void createFromClause() {
-        // From clause
-        fromClause = FromClause.create();
-        fromClause.add(FilterStream.create("adobeInput"));
-    }
-
-    public void createWhereClause(String condition) {
+    private void createWhereClause(String condition) {
         String postFixCondition = convertToPostFixFormat(condition);
         whereClauseExpr = createEplExpression(postFixCondition);
-    }
-
-    public void setActions(List<String> actions) {
-        this.actions = actions;
-    }
-
-    public String getRuleID(){
-        return ruleID;
-    }
-
-    public SelectClause getSelectClause() {
-        return selectClause;
-    }
-
-    public FromClause getFromClause() {
-       return fromClause;
-    }
-
-    public Expression getWhereClause() {
-        return whereClauseExpr;
-    }
-
-    public List<String> getActions() {
-        return actions;
-    }
-
-    public EPStatement createEsperStatement(EPServiceProvider epService){
-        EPStatementObjectModel model = new EPStatementObjectModel();
-        model.setSelectClause(selectClause);
-        model.setFromClause(fromClause);
-        model.setWhereClause(whereClauseExpr);
-        return epService.getEPAdministrator().create(model,ruleID);
     }
 
     // The condition field from the configuration file needs to be
@@ -105,7 +153,7 @@ public class RuleData {
 
                 if (operatorStack.isEmpty()){
                     throw new RuleException(
-                            ruleID + ": Failed to parse condition field. Invalid format."
+                            getRuleID() + ": Failed to parse condition field. Invalid format."
                     );
                 }
 
@@ -113,7 +161,7 @@ public class RuleData {
                 while (!operator.equals("(")){
                     if (operatorStack.isEmpty()){
                         throw new RuleException(
-                                ruleID + ": Failed to parse condition field. Invalid format."
+                                getRuleID() + ": Failed to parse condition field. Invalid format."
                         );
                     }
 
@@ -152,7 +200,7 @@ public class RuleData {
                     // There should always be an operator (>,<,= etc.) in the stack
                     // when meeting and/or.
                     throw new RuleException(
-                            ruleID + ": Failed to parse condition field. Invalid format."
+                            getRuleID() + ": Failed to parse condition field. Invalid format."
                     );
                 }
 
@@ -163,7 +211,19 @@ public class RuleData {
                 continue;
             }
 
-            //TODO: Check if token is a valid operand.
+            //Check if token is a valid operand.
+            if (!isNumeric(token)){
+                for (String inputDomain : getInputDomains()){
+                    if (!inputMap.get(inputDomain).getTypeMap().containsKey(token)){
+                        throw new RuleException(
+                                getRuleID() + ": Operand '" + token + "' is invalid. It is not a number or a data field in an" +
+                                        "input domain."
+                        );
+                    }
+                }
+            }
+
+
             postFix.append(token);
             postFix.append(" ");
         }
@@ -173,7 +233,7 @@ public class RuleData {
 
             if (operator.equals("(")){
                 throw new RuleException(
-                        ruleID + ": Failed to parse condition field. Invalid format."
+                        getRuleID() + ": Failed to parse condition field. Invalid format."
                 );
             }
 
@@ -224,7 +284,7 @@ public class RuleData {
                     }
                     else {
                         throw new RuleException(
-                                ruleID + ": Invalid condition expression. Types are different for '" + op1 +"' and '"
+                                getRuleID() + ": Invalid condition expression. Types are different for '" + op1 +"' and '"
                                         + op2 + "'."
                         );
                     }
@@ -235,7 +295,7 @@ public class RuleData {
 
                         if (valueOp1 == null){
                             throw new RuleException(
-                                    ruleID + ": Invalid condition expression. Operator '" + op1 +"' "
+                                    getRuleID() + ": Invalid condition expression. Operator '" + op1 +"' "
                                            + "' can not be cast to required property type."
                             );
                         }
@@ -248,7 +308,7 @@ public class RuleData {
                             Object valueOp2 = Utils.castToType(op2, propertyType1);
                             if (valueOp2 == null){
                                 throw new RuleException(
-                                        ruleID + ": Invalid condition expression. Operator '" + op2 +"' "
+                                        getRuleID() + ": Invalid condition expression. Operator '" + op2 +"' "
                                                 + "' can not be cast to required property type."
                                 );
                             }
@@ -258,7 +318,7 @@ public class RuleData {
                         }
                         else{
                             throw new RuleException(
-                                    ruleID + ": Invalid condition expression. Both operators '" + op1 +"' and '"
+                                    getRuleID() + ": Invalid condition expression. Both operators '" + op1 +"' and '"
                                             + op2 + "' are not properties or numeric values."
                             );
                         }
@@ -277,7 +337,7 @@ public class RuleData {
         // If not, then postFixString is invalid.
         if (expressionStack.size() != 1){
             throw new RuleException(
-                    ruleID + ": Failed to convert condition string to proper format. Internal error."
+                    getRuleID() + ": Failed to convert condition string to proper format. Internal error."
             );
         }
 
@@ -286,13 +346,11 @@ public class RuleData {
 
     // The method checks if str is a property. If yes, it will return the property type else null.
     private Object getPropertyType(String str){
-        for (String inputID : inputMap.keySet()){
-            InputData input = inputMap.get(inputID);
-            // Iterate data types
+        for (String inputDomain : getInputDomains()){
+            InputData input = inputMap.get(inputDomain);
             if (input.getTypeMap().containsKey(str)){
                 return input.getTypeMap().get(str);
             }
-
         }
 
         return null;

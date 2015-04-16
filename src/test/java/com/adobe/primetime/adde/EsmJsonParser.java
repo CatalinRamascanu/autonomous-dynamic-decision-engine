@@ -2,9 +2,6 @@ package com.adobe.primetime.adde;
 
 import com.adobe.primetime.adde.fetcher.FetcherParser;
 
-/**
- * Created by ramascan on 08/04/15.
- */
 public class EsmJsonParser implements FetcherParser {
     @Override
     public String parseInputJson(String inputJson) {

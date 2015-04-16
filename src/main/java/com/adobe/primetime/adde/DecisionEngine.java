@@ -2,6 +2,7 @@ package com.adobe.primetime.adde;
 
 import com.adobe.primetime.adde.configuration.ConfigurationParser;
 import com.adobe.primetime.adde.esper.EventDataManager;
+import com.adobe.primetime.adde.exception.*;
 import com.adobe.primetime.adde.fetcher.FetcherData;
 import com.adobe.primetime.adde.input.InputData;
 import com.adobe.primetime.adde.fetcher.FetcherManager;
@@ -13,7 +14,6 @@ import com.adobe.primetime.adde.rules.RuleManager;
 import com.adobe.primetime.adde.rules.RuleModel;
 import com.espertech.esper.client.*;
 
-import java.io.IOException;
 import java.util.*;
 
 public class DecisionEngine {
@@ -102,39 +102,45 @@ public class DecisionEngine {
             throw new NullPointerException();
         }
 
-        RuleData ruleData = new RuleData(inputMap);
-
+        // Validate model
         String ruleID = ruleModel.getRuleID();
-        if (ruleModel.getRuleID() == null){
-            System.err.println("addNewRule: Rule ID is null.");
-            return;
+        if (ruleID == null){
+            throw new RuleException("Rule Model contains a rule ID which is null ");
         }
         if (ruleMap.containsKey(ruleID)){
-            System.err.println("Can not add rule with ID: "+ ruleID + ". Another rule with the same ID already exists.");
+            throw new RuleException(
+                    "Can not add rule with ID: "+ ruleID + ". Another rule with the same ID already exists."
+            );
+        }
+
+        for (String inputDomain : ruleModel.getInputDomains()){
+            if (!inputMap.containsKey(inputDomain)){
+                throw new RuleException(
+                        ruleID + ": Input with id: " + inputDomain + " does not exist.Can not use " +
+                                "as input domain."
+                );
+            }
+        }
+
+        for (String action : ruleModel.getActions()){
+            if (!actionMap.containsKey(action)){
+                throw new RuleException(
+                        ruleID + ": Action with id: " + action + " does not exist."
+                );
+            }
         }
 
         // Create rule statement;
-        ruleData.setRuleID(ruleID);
-
-        ruleData.createSelectClause(ruleModel.getActors());
-        ruleData.createFromClause();
-        ruleData.createWhereClause(ruleModel.getCondition());
-
-        ruleData.setActions(ruleModel.getActions());
-
+        RuleData ruleData = new RuleData(inputMap,ruleModel);
         ruleMap.put(ruleData.getRuleID(), ruleData);
 
         // Create ESPER statement
-        EPStatement stmt = ruleData.createEsperStatement(epService);
+        EPStatement stmt = ruleData.createAndAddStatementToEsper(epService);
 
         // Attach actions to statement
         for (String actionID : ruleData.getActions()){
             if (actionMap.containsKey(actionID)){
                 stmt.addListener(actionMap.get(actionID));
-            }
-            else {
-                System.err.println(actionID + "is an undefined action. " +
-                                "Rule with ID: " + ruleID + " will not contain this action.");
             }
         }
     }

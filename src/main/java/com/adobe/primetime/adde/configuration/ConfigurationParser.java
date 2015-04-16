@@ -197,26 +197,30 @@ public class ConfigurationParser {
 
         // Rule Map
         for (RuleJson ruleJson : conf.getRuleJson()){
-            RuleData ruleData = new RuleData(inputMap);
-
-            ruleData.setRuleID(ruleJson.getRuleID());
-            if (ruleData.getRuleID().length() == 0){
+            // Validate JSON
+            if (ruleJson.getRuleID().length() == 0){
                 throw new ConfigurationException("Rule-id can not be an empty string.");
             }
 
-            ruleData.createSelectClause(ruleJson.getActors());
-            ruleData.createFromClause();
-            ruleData.createWhereClause(ruleJson.getCondition());
-
-            for (String action : ruleJson.getActions()){
-                if (!actionMap.containsKey(action)){
+            for (String inputDomain : ruleJson.getInputDomains()){
+                if (!inputMap.containsKey(inputDomain)){
                     throw new ConfigurationException(
-                            ruleData.getRuleID() + ": Action with id: " + action + " does not exist."
+                            ruleJson.getRuleID() + ": Input with id: " + inputDomain + " does not exist.Can not use " +
+                                    "as input domain."
                     );
                 }
             }
 
-            ruleData.setActions(ruleJson.getActions());
+            for (String action : ruleJson.getActions()){
+                if (!actionMap.containsKey(action)){
+                    throw new ConfigurationException(
+                            ruleJson.getRuleID() + ": Action with id: " + action + " does not exist."
+                    );
+                }
+            }
+
+            // Create RuleData
+            RuleData ruleData = new RuleData(inputMap,ruleJson);
             ruleMap.put(ruleData.getRuleID(), ruleData);
         }
     }

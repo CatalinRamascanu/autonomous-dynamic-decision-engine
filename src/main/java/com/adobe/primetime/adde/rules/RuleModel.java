@@ -7,6 +7,7 @@ import java.util.ArrayList;
  */
 public class RuleModel {
     private String ruleID = null;
+    private ArrayList<String> inputDomains = new ArrayList();
     private ArrayList<String> actors = new ArrayList();
     private String condition = null;
     private ArrayList<String> actions = new ArrayList();
@@ -19,6 +20,10 @@ public class RuleModel {
         this.condition = condition;
     }
 
+    public void addInputDomain(String inputDomain){
+        inputDomains.add(inputDomain);
+    }
+
     public void addActor(String actor){
         actors.add(actor);
     }
@@ -29,6 +34,10 @@ public class RuleModel {
 
     public String getRuleID() {
         return ruleID;
+    }
+
+    public ArrayList<String> getInputDomains() {
+        return inputDomains;
     }
 
     public ArrayList<String> getActors() {

@@ -10,9 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-/**
- * Created by ramascan on 10/03/15.
- */
 public class Main {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
@@ -27,6 +24,7 @@ public class Main {
         LOG.info("Setting up rules and listeners...");
         RuleModel ruleModel = new RuleModel();
         ruleModel.setRuleID("rule_02");
+        ruleModel.addInputDomain("adobeInput");
         ruleModel.addActor("num_online_users");
         ruleModel.addActor("auth_rate");
         ruleModel.addActor("wrong_pass_rate");

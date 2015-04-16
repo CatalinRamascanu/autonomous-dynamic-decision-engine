@@ -8,6 +8,9 @@ public class RuleJson {
     @Key("rule-id")
     private String ruleID;
 
+    @Key("input-domains")
+    private List<String> inputDomains;
+
     @Key("actors")
     private List<String> actors;
 
@@ -24,6 +27,8 @@ public class RuleJson {
     public String getRuleID() {
         return ruleID;
     }
+
+    public List<String> getInputDomains() { return inputDomains;}
 
     public List<String> getActors() {
         return actors;
