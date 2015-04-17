@@ -45,7 +45,7 @@ public class TestMain {
 
             @Override
             public void onConditionTrue() {
-                System.out.println("Hello");
+                LOG.info("ConditionListener triggered.");
             }
         });
 

@@ -33,8 +33,7 @@ public class InputData {
         if (this == o) return true;
 
         if (o instanceof String){
-            System.out.println(o);
-            return inputID.equals((String) o);
+            return inputID.equals(o);
         }
 
         if (!(o instanceof InputData)) return false;

@@ -1,6 +1,11 @@
 package com.adobe.primetime.adde.output;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class PrintMessageAction extends Action {
+    private static final Logger LOG = LoggerFactory.getLogger(PrintMessageAction.class);
+
     private enum TargetType {
         STDOUT,
         STDERR,
@@ -26,7 +31,7 @@ public class PrintMessageAction extends Action {
     @Override
     public void executeAction() {
         if (targetType == TargetType.STDOUT){
-            System.out.println(message);
+            LOG.info(message);
         }
     }
 

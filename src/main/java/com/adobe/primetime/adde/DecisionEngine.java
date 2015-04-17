@@ -2,7 +2,6 @@ package com.adobe.primetime.adde;
 
 import com.adobe.primetime.adde.configuration.ConfigurationParser;
 import com.adobe.primetime.adde.esper.EventDataManager;
-import com.adobe.primetime.adde.exception.*;
 import com.adobe.primetime.adde.fetcher.FetcherData;
 import com.adobe.primetime.adde.input.InputData;
 import com.adobe.primetime.adde.fetcher.FetcherManager;
@@ -10,13 +9,17 @@ import com.adobe.primetime.adde.output.Action;
 import com.adobe.primetime.adde.output.CallListenerAction;
 import com.adobe.primetime.adde.output.ConditionListener;
 import com.adobe.primetime.adde.rules.RuleData;
+import com.adobe.primetime.adde.rules.RuleException;
 import com.adobe.primetime.adde.rules.RuleManager;
 import com.adobe.primetime.adde.rules.RuleModel;
 import com.espertech.esper.client.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class DecisionEngine {
+    private static final Logger LOG = LoggerFactory.getLogger(DecisionEngine.class);
 
     private String configurationFilePath;
     private ConfigurationParser confParser;
@@ -34,7 +37,7 @@ public class DecisionEngine {
 
     public void initializeEngine(){
         if (configurationFilePath == null){
-            System.err.println("Configuration file path not specified");
+            LOG.error("Configuration file path not specified");
             return;
         }
 
@@ -65,13 +68,13 @@ public class DecisionEngine {
         fetcherManager.startFetchers();
     }
 
-        public void addInputData(String inputId, Map<String, Object> dataMap){
+    public void addInputData(String inputId, Map<String, Object> dataMap){
         if (inputId == null || dataMap == null){
             throw new NullPointerException();
         }
 
         if (!inputMap.containsKey(inputId)){
-            System.err.println("Input with ID: " + inputId + " is not defined.");
+            LOG.error("Input with ID: " + inputId + " is not defined.");
             return;
         }
 
@@ -79,7 +82,7 @@ public class DecisionEngine {
 
         for (String inputName : dataMap.keySet()){
             if (!typeMap.containsKey(inputName)){
-                System.err.println("Input with ID: " + inputId + " is not defined.");
+                LOG.error("Input with ID: " + inputId + " is not defined.");
                 return;
             }
 
@@ -90,7 +93,7 @@ public class DecisionEngine {
                 epRuntime.sendEvent(dataMap, inputId);
             }
             else{
-                System.err.println("Wrong type used for " + inputName +
+                LOG.error("Wrong type used for " + inputName +
                         ". Required " + inputTypeObj +
                         " but used " + dataValueObj.getClass().getName());
             }
@@ -151,12 +154,12 @@ public class DecisionEngine {
         }
 
         if (!ruleMap.containsKey(ruleID)){
-            System.err.println("Rule with ID: " + ruleID + "does not exist. Can not add condition listener.");
+            LOG.error("Rule with ID: " + ruleID + "does not exist. Can not add condition listener.");
             return;
         }
 
         if (actionMap.containsKey(listener.getListenerID())){
-            System.err.println("There is another action with the same ID: " + listener.getListenerID() +
+            LOG.error("There is another action with the same ID: " + listener.getListenerID() +
                     ". Can not add condition listener. ");
             return;
         }

@@ -1,4 +1,4 @@
-package com.adobe.primetime.adde.exception;
+package com.adobe.primetime.adde.configuration;
 
 public class ConfigurationException extends RuntimeException {
     public ConfigurationException(String message) {

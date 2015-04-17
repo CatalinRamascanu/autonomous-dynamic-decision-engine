@@ -18,10 +18,7 @@ public abstract class Action implements UpdateListener {
 
     @Override
     public void update(EventBean[] eventBeans, EventBean[] eventBeans1) {
-//        System.out.println("Action with ID: " + super.actionID + " fired.");
         executeAction();
-//        System.out.println(eventBeans[0].getUnderlying());
-
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.adobe.primetime.adde.configuration;
 
 import com.adobe.primetime.adde.configuration.json.*;
-import com.adobe.primetime.adde.exception.ConfigurationException;
 import com.adobe.primetime.adde.fetcher.FetcherData;
 import com.adobe.primetime.adde.fetcher.FetcherParser;
 import com.adobe.primetime.adde.input.InputData;
@@ -13,6 +12,8 @@ import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.ObjectParser;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ConfigurationParser {
+    private static final Logger LOG = LoggerFactory.getLogger(ConfigurationParser.class);
     private String filePath;
 
     private Map<String,InputData> inputMap = new HashMap();
@@ -247,13 +249,13 @@ public class ConfigurationParser {
 
         String[] tokens = interval.split(" ");
         if (tokens.length == 0){
-            System.err.println("No tokens have been used in interval time. " +
+            LOG.error("No tokens have been used in interval time. " +
                     "Please use one of the following tokens, separated by space: " +
                     "<number>h <number>m <number>s. Ex: 1h 30m");
             return -1;
         }
         if (tokens.length > 3){
-            System.err.println("Too many tokens in interval time. " +
+            LOG.error("Too many tokens in interval time. " +
                     "It can be maximum 3. You inserted  " + tokens.length + " tokens.");
             return -1;
         }
@@ -273,7 +275,7 @@ public class ConfigurationParser {
                     multiplier = 1;
                     break;
                 default:
-                    System.err.println("Last char of token '" + token +"' is not valid. " +
+                    LOG.error("Last char of token '" + token + "' is not valid. " +
                             "It should be one of the following: h,m,s");
                     return -1;
             }
@@ -284,11 +286,11 @@ public class ConfigurationParser {
                 number = Long.parseLong(numberPart);
             }
             catch (NumberFormatException e){
-                System.err.println("A token contains the following number '" + numberPart + "' which is not valid.");
+                LOG.error("A token contains the following number '" + numberPart + "' which is not valid.");
                 return -1;
             }
             if (number < 0){
-                System.err.println("You can not pass a negative number to a token of the interval time for fetcher. " +
+                LOG.error("You can not pass a negative number to a token of the interval time for fetcher. " +
                         "Number: " + number);
                 return -1;
             }

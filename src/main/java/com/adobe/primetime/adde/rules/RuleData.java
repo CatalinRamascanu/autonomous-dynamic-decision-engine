@@ -2,16 +2,13 @@ package com.adobe.primetime.adde.rules;
 
 import com.adobe.primetime.adde.Utils;
 import com.adobe.primetime.adde.configuration.json.RuleJson;
-import com.adobe.primetime.adde.exception.RuleException;
 import com.adobe.primetime.adde.input.InputData;
 import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.soda.*;
-import org.json.simple.parser.ParseException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Stack;
 
 /**

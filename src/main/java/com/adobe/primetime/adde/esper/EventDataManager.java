@@ -12,7 +12,6 @@ public class EventDataManager {
     public static void addInputToConfig(Configuration cepConfig,Map<String,InputData> inputMap){
         for (String inputID : inputMap.keySet()){
             InputData input = inputMap.get(inputID);
-
             // Add event type
             cepConfig.addEventType(input.getInputID(),input.getTypeMap());
         }

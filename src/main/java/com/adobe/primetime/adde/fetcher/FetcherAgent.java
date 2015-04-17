@@ -1,7 +1,6 @@
 package com.adobe.primetime.adde.fetcher;
 
 import com.adobe.primetime.adde.Utils;
-import com.adobe.primetime.adde.exception.FetcherException;
 import com.adobe.primetime.adde.input.InputData;
 import com.espertech.esper.client.EPRuntime;
 import com.google.api.client.http.GenericUrl;
@@ -15,11 +14,15 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
 
 public class FetcherAgent extends TimerTask {
+    private static final Logger LOG = LoggerFactory.getLogger(FetcherAgent.class);
+
     private FetcherData fetcherData;
     private int executionCount = 0;
     private InputData inputData;
@@ -47,9 +50,9 @@ public class FetcherAgent extends TimerTask {
 
     @Override
     public void run() {
+        String fetcherID = fetcherData.getFetcherID();
         if (executionCount < fetcherData.getNumOfFetches()){
-                System.out.println("Fetcher with ID: " + fetcherData.getFetcherID() + " will execute now...");
-            executionCount++;
+            LOG.info("ID: '" + fetcherID + "' - Will execute now with count = " + executionCount);
 
             //Fetching data
             HttpRequest request = null;
@@ -58,27 +61,18 @@ public class FetcherAgent extends TimerTask {
                 request = REQUEST_FACTORY.buildGetRequest(new GenericUrl(fetcherData.getUrl()));
                 fetchedJson = request.execute().parseAsString();
             } catch (IOException e) {
+                LOG.error("ID: '" + fetcherID + "' - Failed to fetch data from URL: '" +
+                        fetcherData.getUrl() +"'. ");
                 e.printStackTrace();
+                return;
             }
 
-            System.out.println("We fetched: " + fetchedJson);
+            LOG.info("ID: '" + fetcherID +"' - Fetched the following data: \n" + fetchedJson);
 
             FetcherParser fetcherParser = fetcherData.getFetcherParser();
             if (fetcherParser != null){
                 fetchedJson = fetcherParser.parseInputJson(fetchedJson);
             }
-
-            // Checking if JSON is valid.
-            try{
-                new JSONParser().parse(fetchedJson);
-            }
-            catch (ParseException pe){
-                throw new FetcherException(
-                        fetcherData.getFetcherID() + ": Fetched data is not a valid JSON.",
-                        pe
-                );
-            }
-
 
             Map<String,Object> typeMap = inputData.getTypeMap();
 
@@ -93,38 +87,37 @@ public class FetcherAgent extends TimerTask {
 
                     for (Object objKey : dataObject.keySet()){
                         String fieldName = (String) objKey;
-                        // TODO: Maybe do not throw exceptions when fetching data?
-                        // We would not want to stop the whole process if a fetcher was badly configured.
                         if (!typeMap.containsKey(fieldName)){
-                            throw new FetcherException(
-                                    fetcherData.getFetcherID() + ": Fetched JSON contains an input field name that was not" +
-                                            "defined in input " + fetcherData.getReceiverInputID()
-                            );
+                            LOG.error("ID: '" + fetcherID + "' - Fetched JSON contains an input field name that was not" +
+                                            "defined in input " + fetcherData.getReceiverInputID());
+                            return;
                         }
                         Object fieldValue = Utils.castToType((String) dataObject.get(fieldName), typeMap.get(fieldName));
                         if (fieldValue == null){
-                            throw new FetcherException(
-                                    fetcherData.getFetcherID() + ": Invalid value '" + (String) dataObject.get(fieldName) +
-                                            " for field " + fieldName + ". Can not be cast to apropriate type."
-
-                            );
+                            LOG.error("ID: '" + fetcherID + "' - Invalid value '" + dataObject.get(fieldName) +
+                                            " for field " + fieldName + ". Can not be cast to apropriate type.");
+                            return;
                         }
 
                         dataMap.put(fieldName,fieldValue);
-                        System.out.println(fieldName + " : " + fieldValue);
                     }
 
                     epRuntime.sendEvent(dataMap, inputData.getInputID());
                 }
             } catch (ParseException e) {
+                LOG.error("ID: '" + fetcherID + "' - Fetched data is not a valid JSON.");
                 e.printStackTrace();
+                return;
             }
 
-            System.out.println("Fetcher with ID: " + fetcherData.getFetcherID() + " successfully " +
-                    "fetched and inserted data for " + fetcherData.getReceiverInputID() + ".");
+            LOG.info("ID: '" + fetcherID + "' - Successfully " +
+                    "fetched and inserted data for " + fetcherData.getReceiverInputID() + "." +
+                    "Finished execution count = " + executionCount + " .");
+
+            executionCount++;
         }
         else {
-            System.out.println("Fetcher with ID: " + fetcherData.getFetcherID() + " is shutting down.");
+            LOG.info("ID: '" + fetcherID + "' - shutting down...");
             containerTimer.cancel();
         }
     }
