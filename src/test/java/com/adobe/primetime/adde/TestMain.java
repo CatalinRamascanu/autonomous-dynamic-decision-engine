@@ -64,7 +64,7 @@ public class TestMain {
             event.put("num_online_users", num_online_users);
             event.put("wrong_pass_rate", wrong_pass_rate);
             event.put("pass-status", "Success");
-            decisionEngine.addInputData("adobeInput",event);
+            decisionEngine.addInputData("adobeInput", event);
         }
 
         LOG.info("Done.");

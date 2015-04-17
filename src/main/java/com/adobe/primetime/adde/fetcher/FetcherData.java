@@ -6,7 +6,7 @@ public class FetcherData {
     private String fetcherID;
     private String receiverInputID;
     private String url;
-    private long interval;
+    private int interval;
     private int numOfFetches;
     private FetcherParser fetcherParser;
 
@@ -26,7 +26,7 @@ public class FetcherData {
         this.numOfFetches = numOfFetches;
     }
 
-    public void setInterval(long interval) {
+    public void setInterval(int interval) {
         this.interval = interval;
     }
 
@@ -46,7 +46,7 @@ public class FetcherData {
         return url;
     }
 
-    public long getInterval() {
+    public int getInterval() {
         return interval;
     }
 

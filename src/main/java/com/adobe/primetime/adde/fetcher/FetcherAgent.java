@@ -24,7 +24,7 @@ public class FetcherAgent extends TimerTask {
     private static final Logger LOG = LoggerFactory.getLogger(FetcherAgent.class);
 
     private FetcherData fetcherData;
-    private int executionCount = 0;
+    private int executionCount = 1;
     private InputData inputData;
     private Timer containerTimer;
     private EPRuntime epRuntime;
@@ -51,7 +51,7 @@ public class FetcherAgent extends TimerTask {
     @Override
     public void run() {
         String fetcherID = fetcherData.getFetcherID();
-        if (executionCount < fetcherData.getNumOfFetches()){
+        if (executionCount <= fetcherData.getNumOfFetches()){
             LOG.info("ID: '" + fetcherID + "' - Will execute now with count = " + executionCount);
 
             //Fetching data
@@ -60,6 +60,7 @@ public class FetcherAgent extends TimerTask {
             try {
                 request = REQUEST_FACTORY.buildGetRequest(new GenericUrl(fetcherData.getUrl()));
                 fetchedJson = request.execute().parseAsString();
+
             } catch (IOException e) {
                 LOG.error("ID: '" + fetcherID + "' - Failed to fetch data from URL: '" +
                         fetcherData.getUrl() +"'. ");
@@ -99,7 +100,7 @@ public class FetcherAgent extends TimerTask {
                             return;
                         }
 
-                        dataMap.put(fieldName,fieldValue);
+                        dataMap.put(fieldName, fieldValue);
                     }
 
                     epRuntime.sendEvent(dataMap, inputData.getInputID());
@@ -117,9 +118,10 @@ public class FetcherAgent extends TimerTask {
             executionCount++;
         }
         else {
-            LOG.info("ID: '" + fetcherID + "' - shutting down...");
+            LOG.info("ID: '" + fetcherID + "' - Shutting down...");
             containerTimer.cancel();
         }
     }
+
 
 }

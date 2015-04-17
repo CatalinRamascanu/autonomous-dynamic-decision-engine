@@ -1,7 +1,6 @@
 package com.adobe.primetime.adde;
 
 import com.adobe.primetime.adde.configuration.ConfigurationParser;
-import com.adobe.primetime.adde.esper.EventDataManager;
 import com.adobe.primetime.adde.fetcher.FetcherData;
 import com.adobe.primetime.adde.input.InputData;
 import com.adobe.primetime.adde.fetcher.FetcherManager;
@@ -20,6 +19,7 @@ import java.util.*;
 
 public class DecisionEngine {
     private static final Logger LOG = LoggerFactory.getLogger(DecisionEngine.class);
+    private final String ENGINE_ID = "esperEngine";
 
     private String configurationFilePath;
     private ConfigurationParser confParser;
@@ -37,7 +37,13 @@ public class DecisionEngine {
 
     public void initializeEngine(){
         if (configurationFilePath == null){
-            LOG.error("Configuration file path not specified");
+            LOG.info("Configuration file path not specified");
+
+            // Setting up engine with empty configuration.
+            Configuration cepConfig = new Configuration();
+            epService = EPServiceProviderManager.getProvider(ENGINE_ID, cepConfig);
+            epRuntime= epService.getEPRuntime();
+
             return;
         }
 
@@ -51,11 +57,14 @@ public class DecisionEngine {
 
         Configuration cepConfig = new Configuration();
 
-        // Define event types
-        EventDataManager.addInputToConfig(cepConfig, inputMap);
+        // Add event types
+        for (String inputID : inputMap.keySet()){
+            InputData input = inputMap.get(inputID);
+            cepConfig.addEventType(input.getInputID(),input.getTypeMap());
+        }
 
         // Setup the rule engine
-        epService = EPServiceProviderManager.getProvider("esperEngine", cepConfig);
+        epService = EPServiceProviderManager.getProvider(ENGINE_ID, cepConfig);
 
         // Define rules
         RuleManager ruleManager = new RuleManager(ruleMap, actionMap);

@@ -164,7 +164,7 @@ public class ConfigurationParser {
             fetcherData.setUrl(fetcherJson.getUrl());
 
             String interval = fetcherJson.getInterval();
-            long seconds = convertIntervalToSeconds(interval);
+            int seconds = convertIntervalToSeconds(interval);
             if (seconds == -1){
                 throw new ConfigurationException(
                         fetcherData.getFetcherID() + ": Interval time provided is not in the correct format."
@@ -244,8 +244,8 @@ public class ConfigurationParser {
         }
     }
 
-    private long convertIntervalToSeconds(String interval){
-        long timeInterval = 0;
+    private int convertIntervalToSeconds(String interval){
+        int timeInterval = 0;
 
         String[] tokens = interval.split(" ");
         if (tokens.length == 0){
@@ -281,9 +281,9 @@ public class ConfigurationParser {
             }
 
             String numberPart = token.substring(0,token.length() - 1);
-            long number = 0;
+            int number = 0;
             try{
-                number = Long.parseLong(numberPart);
+                number = Integer.parseInt(numberPart);
             }
             catch (NumberFormatException e){
                 LOG.error("A token contains the following number '" + numberPart + "' which is not valid.");
