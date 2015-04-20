@@ -1,0 +1,73 @@
+{
+  "input":[
+    {
+      "input-id":"elements",
+      "data":[
+        {"name":"element",      "type":"long"}
+      ]
+    }
+  ],
+
+  "rules":[
+    {
+      "rule-id": "moving_batch_window_sum",
+      "input-domains":["elements"],
+      "actors": [
+        "element"
+      ],
+      "query": "sum(element) as `batch-sum`",
+      "time-window": "",
+      "batch-window": "3",
+      "actions": ["print-simple", "print-element", "print-sum", "return-element", "return-sum"]
+    },
+    {
+      "rule-id": "moving_time_window_sum",
+      "input-domains":["elements"],
+      "actors": [
+        "element"
+      ],
+      "query": "sum(element) as `time-sum`",
+      "time-window": "3s",
+      "batch-window": "",
+      "actions": ["print-simple", "print-element", "print-time-sum", "print-batch-sum", "return-element", "return-time-sum", "return-batch-sum"]
+    }
+  ],
+
+  "actions":[
+    {
+      "action-id":"print-simple",
+      "action-type":"print-message",
+      "args":["We received a new element!", "STDOUT"]
+    },
+    {
+      "action-id":"print-element",
+      "action-type":"print-message",
+      "args":["We received element: ${element}", "STDOUT"]
+    },
+    {
+      "action-id":"print-time-sum",
+      "action-type":"print-message",
+      "args":["Received: ${element}; sum of elements over last ${time-window}: ${time-sum}", "STDOUT"]
+    },
+    {
+      "action-id":"print-batch-sum",
+      "action-type":"print-message",
+      "args":["Received: ${element}; sum of last ${batch-window} elements: ${batch-sum}", "STDOUT"]
+    },
+    {
+      "action-id":"return-element",
+      "action-type":"return-value",
+      "args":["${element}"]
+    },
+    {
+      "action-id":"return-time-sum",
+      "action-type":"return-value",
+      "args":["${time-sum}"]
+    },
+    {
+      "action-id":"return-batch-sum",
+      "action-type":"return-value",
+      "args":["${batch-sum}"]
+    }
+  ]
+}

@@ -110,7 +110,14 @@ public class ConfigurationParser {
             }
 
             String actionType = actionJson.getActionType();
-            if (actionType.equals("print-message")){
+
+            // TODO: these ifs must go in https://github.com/CatalinRamascanu/autonomous-dynamic-decision-engine/issues/8
+            if (actionType.equals("return-value")) {
+                ReturnAction action = new ReturnAction();
+                // TODO: implement this case
+                actionMap.put(action.getActionID(), action);
+
+            } else if (actionType.equals("print-message")){
                 PrintMessageAction action = new PrintMessageAction();
                 action.setActionID(actionID);
 

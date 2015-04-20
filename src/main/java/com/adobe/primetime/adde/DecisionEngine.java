@@ -7,6 +7,7 @@ import com.adobe.primetime.adde.fetcher.FetcherManager;
 import com.adobe.primetime.adde.output.Action;
 import com.adobe.primetime.adde.output.CallListenerAction;
 import com.adobe.primetime.adde.output.ConditionListener;
+import com.adobe.primetime.adde.output.ReturnAction;
 import com.adobe.primetime.adde.rules.RuleData;
 import com.adobe.primetime.adde.rules.RuleException;
 import com.adobe.primetime.adde.rules.RuleManager;
@@ -107,6 +108,15 @@ public class DecisionEngine {
                         " but used " + dataValueObj.getClass().getName());
             }
         }
+    }
+
+    public Object callMethod(String inputId, String actionId, Map<String, Object> dataMap) {
+        // TODO: figure out return type
+        ReturnAction action = // TODO: safe cast get action by actionId
+        // ...
+        addInputData(inputId, dataMap);
+        // ...
+        return action.getReturnValue();
     }
 
     public void addNewRule(RuleModel ruleModel){

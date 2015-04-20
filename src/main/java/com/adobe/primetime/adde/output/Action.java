@@ -18,7 +18,9 @@ public abstract class Action implements UpdateListener {
 
     @Override
     public void update(EventBean[] eventBeans, EventBean[] eventBeans1) {
-        executeAction();
+        // TODO: pass update parameters to the action implementation as per
+        // https://github.com/CatalinRamascanu/autonomous-dynamic-decision-engine/issues/9
+        executeAction(/* fill in parameters */);
     }
 
     @Override
