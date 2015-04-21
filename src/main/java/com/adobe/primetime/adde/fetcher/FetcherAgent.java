@@ -24,8 +24,9 @@ import java.util.*;
 public class FetcherAgent extends TimerTask {
     private static final Logger LOG = LoggerFactory.getLogger(FetcherAgent.class);
 
+    private boolean isRunning;
     private FetcherData fetcherData;
-    private int executionCount = 1;
+    private int executionCount;
     private InputData inputData;
     private Timer containerTimer;
     private DecisionEngine decisionEngine;
@@ -38,6 +39,9 @@ public class FetcherAgent extends TimerTask {
         this.inputData = inputData;
         this.fetcherData = fetcherData;
         this.containerTimer = containerTimer;
+
+        executionCount = 1;
+        isRunning = true;
     }
 
     // INFO: default connection timeout and read timeout are 20s
@@ -52,78 +56,111 @@ public class FetcherAgent extends TimerTask {
     @Override
     public void run() {
         String fetcherID = fetcherData.getFetcherID();
-        if (executionCount <= fetcherData.getNumOfFetches()){
-            LOG.info("ID: '" + fetcherID + "' - Will execute now with count = " + executionCount);
 
-            //Fetching data
-            HttpRequest request = null;
-            String fetchedJson = "";
-            try {
-                request = REQUEST_FACTORY.buildGetRequest(new GenericUrl(fetcherData.getUrl()));
-                fetchedJson = request.execute().parseAsString();
+        // TODO: Look into this. I am double checking (at the begining and at the end). Maybe another option?
+        if (!isRunning ||
+                (executionCount > fetcherData.getNumOfFetches()) && fetcherData.getNumOfFetches() >= 0){
 
-            } catch (IOException e) {
-                LOG.error("ID: '" + fetcherID + "' - Failed to fetch data from URL: '" +
-                        fetcherData.getUrl() +"'. ");
-                e.printStackTrace();
-                return;
-            }
-
-            LOG.info("ID: '" + fetcherID +"' - Fetched the following data: \n" + fetchedJson);
-
-            FetcherParser fetcherParser = fetcherData.getFetcherParser();
-            if (fetcherParser != null){
-                fetchedJson = fetcherParser.parseInputJson(fetchedJson);
-            }
-
-            Map<String,Object> typeMap = inputData.getTypeMap();
-
-            JSONParser parser = new JSONParser();
-            try {
-                JSONArray dataArray = (JSONArray) parser.parse(fetchedJson);
-
-                Iterator<JSONObject> it = dataArray.iterator();
-                while(it.hasNext()){
-                    JSONObject dataObject = it.next();
-                    Map<String, Object> dataMap = new HashMap<>();
-
-                    for (Object objKey : dataObject.keySet()){
-                        String fieldName = (String) objKey;
-                        if (!typeMap.containsKey(fieldName)){
-                            LOG.error("ID: '" + fetcherID + "' - Fetched JSON contains an input field name that was not" +
-                                            "defined in input " + fetcherData.getReceiverInputID());
-                            return;
-                        }
-                        Object fieldValue = Utils.castToType((String) dataObject.get(fieldName), typeMap.get(fieldName));
-                        if (fieldValue == null){
-                            LOG.error("ID: '" + fetcherID + "' - Invalid value '" + dataObject.get(fieldName) +
-                                            " for field " + fieldName + ". Can not be cast to apropriate type.");
-                            return;
-                        }
-
-                        dataMap.put(fieldName, fieldValue);
-                    }
-
-                    // Add data into engine
-                    decisionEngine.addInputData(inputData.getInputID(),dataMap);
-                }
-            } catch (ParseException e) {
-                LOG.error("ID: '" + fetcherID + "' - Fetched data is not a valid JSON.");
-                e.printStackTrace();
-                return;
-            }
-
-            LOG.info("ID: '" + fetcherID + "' - Successfully " +
-                    "fetched and inserted data for " + fetcherData.getReceiverInputID() + "." +
-                    "Finished execution count = " + executionCount + " .");
-
-            executionCount++;
-        }
-        else {
             LOG.info("ID: '" + fetcherID + "' - Shutting down...");
             containerTimer.cancel();
+
+            // Call notify in order for engine to know that fetcher is dead.
+            synchronized (this){
+                this.notify();
+            }
+
+            isRunning = false;
+
+            return;
+        }
+
+
+        LOG.info("ID: '" + fetcherID + "' - Will execute now with count = " + executionCount);
+
+        //Fetching data
+        HttpRequest request = null;
+        String fetchedJson = "";
+        try {
+            request = REQUEST_FACTORY.buildGetRequest(new GenericUrl(fetcherData.getUrl()));
+            fetchedJson = request.execute().parseAsString();
+
+        } catch (IOException e) {
+            LOG.error("ID: '" + fetcherID + "' - Failed to fetch data from URL: '" +
+                    fetcherData.getUrl() +"'. ");
+            e.printStackTrace();
+            return;
+        }
+
+        LOG.info("ID: '" + fetcherID +"' - Fetched the following data: \n" + fetchedJson);
+
+        FetcherParser fetcherParser = fetcherData.getFetcherParser();
+        if (fetcherParser != null){
+            fetchedJson = fetcherParser.parseInputJson(fetchedJson);
+        }
+
+        Map<String,Object> typeMap = inputData.getTypeMap();
+
+        JSONParser parser = new JSONParser();
+        try {
+            JSONArray dataArray = (JSONArray) parser.parse(fetchedJson);
+
+            Iterator<JSONObject> it = dataArray.iterator();
+            while(it.hasNext()){
+                JSONObject dataObject = it.next();
+                Map<String, Object> dataMap = new HashMap<>();
+
+                for (Object objKey : dataObject.keySet()){
+                    String fieldName = (String) objKey;
+                    if (!typeMap.containsKey(fieldName)){
+                        LOG.error("ID: '" + fetcherID + "' - Fetched JSON contains an input field name that was not" +
+                                "defined in input " + fetcherData.getReceiverInputID());
+                        return;
+                    }
+                    Object fieldValue = Utils.castToType((String) dataObject.get(fieldName), typeMap.get(fieldName));
+                    if (fieldValue == null){
+                        LOG.error("ID: '" + fetcherID + "' - Invalid value '" + dataObject.get(fieldName) +
+                                " for field " + fieldName + ". Can not be cast to apropriate type.");
+                        return;
+                    }
+
+                    dataMap.put(fieldName, fieldValue);
+                }
+
+                // Add data into engine
+                decisionEngine.addInputData(inputData.getInputID(), dataMap);
+            }
+        } catch (ParseException e) {
+            LOG.error("ID: '" + fetcherID + "' - Fetched data is not a valid JSON.");
+            e.printStackTrace();
+            return;
+        }
+
+        LOG.info("ID: '" + fetcherID + "' - Successfully " +
+                "fetched and inserted data for " + fetcherData.getReceiverInputID() + "." +
+                "Finished execution count = " + executionCount + " .");
+
+        executionCount++;
+
+        if (!isRunning ||
+                (executionCount > fetcherData.getNumOfFetches()) && fetcherData.getNumOfFetches() >= 0){
+
+            LOG.info("ID: '" + fetcherID + "' - Shutting down...");
+            containerTimer.cancel();
+
+            // Call notify in order for engine to know that fetcher is dead.
+            synchronized (this){
+                this.notify();
+            }
+
+            isRunning = false;
         }
     }
 
+    public void stop(){
+        isRunning = false;
+    }
 
+    public boolean isRunning(){
+        return isRunning;
+    }
 }

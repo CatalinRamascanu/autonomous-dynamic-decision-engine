@@ -3,6 +3,7 @@ package com.adobe.primetime.adde;
 import com.adobe.primetime.adde.output.RuleListener;
 import com.adobe.primetime.adde.rules.RuleModel;
 
+import org.omg.PortableServer.THREAD_POLICY_ID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
@@ -67,6 +68,14 @@ public class TestMain {
             event.put("pass-status", "Success");
             decisionEngine.addInputData("adobeInput", event);
         }
+
+        try {
+            Thread.sleep(8000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        decisionEngine.shutdown();
 
         LOG.info("Done.");
 

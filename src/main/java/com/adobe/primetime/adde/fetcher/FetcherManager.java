@@ -4,12 +4,13 @@ import com.adobe.primetime.adde.DecisionEngine;
 import com.adobe.primetime.adde.input.InputData;
 import com.espertech.esper.client.EPRuntime;
 
+import javax.sound.midi.Soundbank;
 import java.util.*;
 
 public class FetcherManager {
     private Map<String,FetcherData> fetcherMap;
     private Map<String,InputData> inputMap;
-    private ArrayList<Timer> timers = new ArrayList<>();
+    private ArrayList<FetcherAgent> fetchers = new ArrayList<>();
     private DecisionEngine decisionEngine;
     public FetcherManager(Map<String, FetcherData> fetcherMap, Map<String, InputData> inputMap, DecisionEngine decisionEngine) {
         this.fetcherMap = fetcherMap;
@@ -29,7 +30,26 @@ public class FetcherManager {
             calendar.add(Calendar.SECOND, fetcherData.getInterval());
             timer.schedule(fetcherAgent, calendar.getTime(), fetcherData.getInterval() * 1000);
 
-            timers.add(timer);
+            fetchers.add(fetcherAgent);
+        }
+    }
+
+    public void stopFetchers(){
+
+        // Tell fetchers to stop
+        for (FetcherAgent fetcher : fetchers){
+            if (fetcher.isRunning()) {
+                fetcher.stop();
+
+                // Wait for fetcher to close
+                synchronized (fetcher){
+                    try {
+                        fetcher.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
     }
 }

@@ -33,7 +33,7 @@
       "receiver-input-id":"esmInput",
       "url":"https://sp.auth.adobe.com/esm/v2/year.json",
       "interval":"2s",
-      "num-of-fetches":"1",
+      "num-of-fetches":"3",
       "fetcher-parser":"com.adobe.primetime.adde.EsmJsonParser"
     }
   ],

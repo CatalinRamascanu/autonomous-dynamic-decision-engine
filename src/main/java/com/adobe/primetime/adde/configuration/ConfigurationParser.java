@@ -172,19 +172,22 @@ public class ConfigurationParser {
             }
             fetcherData.setInterval(seconds);
 
-            int numOfFetches = 0;
-            try{
-                numOfFetches = Integer.parseInt(fetcherJson.getNumOfFetches());
-            }
-            catch (NumberFormatException e){
-                throw new ConfigurationException(
-                        fetcherData.getFetcherID() + ": Num-of-fetches is not an integer number."
-                );
-            }
-            if (numOfFetches < 0){
-                throw new ConfigurationException(
-                        fetcherData.getFetcherID() + ": Num-of-fetches can not be a negative number."
-                );
+            // If NumOfFetches is negative, it means the fetcher will run forever.
+            int numOfFetches = -1;
+            if (fetcherJson.getNumOfFetches() != null){
+                try{
+                    numOfFetches = Integer.parseInt(fetcherJson.getNumOfFetches());
+                }
+                catch (NumberFormatException e){
+                    throw new ConfigurationException(
+                            fetcherData.getFetcherID() + ": Num-of-fetches is not an integer number."
+                    );
+                }
+                if (numOfFetches < 0){
+                    throw new ConfigurationException(
+                            fetcherData.getFetcherID() + ": Num-of-fetches can not be a negative number."
+                    );
+                }
             }
             fetcherData.setNumOfFetches(numOfFetches);
 

@@ -1,6 +1,7 @@
 package com.adobe.primetime.adde;
 
 import com.adobe.primetime.adde.configuration.ConfigurationParser;
+import com.adobe.primetime.adde.fetcher.FetcherAgent;
 import com.adobe.primetime.adde.fetcher.FetcherData;
 import com.adobe.primetime.adde.input.InputData;
 import com.adobe.primetime.adde.fetcher.FetcherManager;
@@ -29,6 +30,8 @@ public class DecisionEngine {
     private Map<String, FetcherData> fetcherMap;
     private Map<String,RuleData> ruleMap;
     private Map<String,Action> actionMap;
+
+    FetcherManager fetcherManager;
 
     public void setConfigurationFile(String filePath){
         configurationFilePath = filePath;
@@ -72,7 +75,7 @@ public class DecisionEngine {
         epRuntime= epService.getEPRuntime();
 
         // Define fetchers
-        FetcherManager fetcherManager = new FetcherManager(fetcherMap,inputMap,this);
+        fetcherManager = new FetcherManager(fetcherMap,inputMap,this);
         fetcherManager.startFetchers();
     }
 
@@ -174,5 +177,23 @@ public class DecisionEngine {
 
         EPStatement stmt = epService.getEPAdministrator().getStatement(ruleID);
         stmt.addListener(listener);
+
+    }
+
+    public void shutdown(){
+        // Shutdown fetchers
+        fetcherManager.stopFetchers();
+
+        // Remove statement listeners and then statements
+        EPAdministrator epAdministrator = epService.getEPAdministrator();
+        for (String stmtName : epAdministrator.getStatementNames()){
+            epAdministrator.getStatement(stmtName).removeAllListeners();
+        }
+        epAdministrator.destroyAllStatements();
+
+        // Destroy ESPER service
+        epService.removeAllServiceStateListeners();
+        epService.removeAllStatementStateListeners();
+        epService.destroy();
     }
 }
