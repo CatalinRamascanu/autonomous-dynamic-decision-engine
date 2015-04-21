@@ -72,7 +72,7 @@ public class DecisionEngine {
         epRuntime= epService.getEPRuntime();
 
         // Define fetchers
-        FetcherManager fetcherManager = new FetcherManager(fetcherMap,inputMap,epRuntime);
+        FetcherManager fetcherManager = new FetcherManager(fetcherMap,inputMap,this);
         fetcherManager.startFetchers();
     }
 

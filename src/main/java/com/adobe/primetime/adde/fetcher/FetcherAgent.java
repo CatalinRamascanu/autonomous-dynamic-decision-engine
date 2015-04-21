@@ -1,5 +1,6 @@
 package com.adobe.primetime.adde.fetcher;
 
+import com.adobe.primetime.adde.DecisionEngine;
 import com.adobe.primetime.adde.Utils;
 import com.adobe.primetime.adde.input.InputData;
 import com.espertech.esper.client.EPRuntime;
@@ -27,13 +28,13 @@ public class FetcherAgent extends TimerTask {
     private int executionCount = 1;
     private InputData inputData;
     private Timer containerTimer;
-    private EPRuntime epRuntime;
+    private DecisionEngine decisionEngine;
 
-    public FetcherAgent(EPRuntime epRuntime, InputData inputData, FetcherData fetcherData, Timer containerTimer) {
-        if (epRuntime == null || inputData == null || fetcherData == null || containerTimer == null){
+    public FetcherAgent(DecisionEngine decisionEngine, InputData inputData, FetcherData fetcherData, Timer containerTimer) {
+        if (decisionEngine == null || inputData == null || fetcherData == null || containerTimer == null){
             throw new NullPointerException();
         }
-        this.epRuntime = epRuntime;
+        this.decisionEngine = decisionEngine;
         this.inputData = inputData;
         this.fetcherData = fetcherData;
         this.containerTimer = containerTimer;
@@ -103,7 +104,8 @@ public class FetcherAgent extends TimerTask {
                         dataMap.put(fieldName, fieldValue);
                     }
 
-                    epRuntime.sendEvent(dataMap, inputData.getInputID());
+                    // Add data into engine
+                    decisionEngine.addInputData(inputData.getInputID(),dataMap);
                 }
             } catch (ParseException e) {
                 LOG.error("ID: '" + fetcherID + "' - Fetched data is not a valid JSON.");

@@ -1,5 +1,6 @@
 package com.adobe.primetime.adde.fetcher;
 
+import com.adobe.primetime.adde.DecisionEngine;
 import com.adobe.primetime.adde.input.InputData;
 import com.espertech.esper.client.EPRuntime;
 
@@ -9,12 +10,11 @@ public class FetcherManager {
     private Map<String,FetcherData> fetcherMap;
     private Map<String,InputData> inputMap;
     private ArrayList<Timer> timers = new ArrayList<>();
-    private EPRuntime epRuntime;
-
-    public FetcherManager(Map<String, FetcherData> fetcherMap, Map<String, InputData> inputMap, EPRuntime epRuntime) {
+    private DecisionEngine decisionEngine;
+    public FetcherManager(Map<String, FetcherData> fetcherMap, Map<String, InputData> inputMap, DecisionEngine decisionEngine) {
         this.fetcherMap = fetcherMap;
         this.inputMap = inputMap;
-        this.epRuntime = epRuntime;
+        this.decisionEngine = decisionEngine;
     }
 
     public void startFetchers(){
@@ -23,7 +23,7 @@ public class FetcherManager {
             InputData inputData = inputMap.get(fetcherData.getReceiverInputID());
             Timer timer = new Timer();
 
-            FetcherAgent fetcherAgent = new FetcherAgent(epRuntime,inputData,fetcherData,timer);
+            FetcherAgent fetcherAgent = new FetcherAgent(decisionEngine,inputData,fetcherData,timer);
 
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.SECOND, fetcherData.getInterval());
