@@ -3,6 +3,8 @@ package com.adobe.primetime.adde.output;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 public class PrintMessageAction extends Action {
     private static final Logger LOG = LoggerFactory.getLogger(PrintMessageAction.class);
 
@@ -29,7 +31,7 @@ public class PrintMessageAction extends Action {
     }
 
     @Override
-    public void executeAction() {
+    public void executeAction(Map<String,Object> actorMap) {
         if (targetType == TargetType.STDOUT){
             LOG.info(message);
         }

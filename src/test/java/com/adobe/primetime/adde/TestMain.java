@@ -1,6 +1,6 @@
 package com.adobe.primetime.adde;
 
-import com.adobe.primetime.adde.output.ConditionListener;
+import com.adobe.primetime.adde.output.RuleListener;
 import com.adobe.primetime.adde.rules.RuleModel;
 
 import org.slf4j.Logger;
@@ -37,15 +37,16 @@ public class TestMain {
         decisionEngine.addNewRule(ruleModel);
 
         // Add custom listener through api
-        decisionEngine.addConditionListener("rule_02", new ConditionListener() {
+        decisionEngine.addRuleListener("rule_02", new RuleListener() {
             @Override
             public String getListenerID() {
                 return "printHelloListener";
             }
 
             @Override
-            public void onConditionTrue() {
-                LOG.info("ConditionListener triggered.");
+            public void executeAction(Map<String,Object> actorMap) {
+                LOG.info("RuleListener triggered with Map: \n" + actorMap);
+
             }
         });
 

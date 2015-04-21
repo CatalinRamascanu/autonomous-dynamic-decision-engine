@@ -5,8 +5,7 @@ import com.adobe.primetime.adde.fetcher.FetcherData;
 import com.adobe.primetime.adde.input.InputData;
 import com.adobe.primetime.adde.fetcher.FetcherManager;
 import com.adobe.primetime.adde.output.Action;
-import com.adobe.primetime.adde.output.CallListenerAction;
-import com.adobe.primetime.adde.output.ConditionListener;
+import com.adobe.primetime.adde.output.RuleListener;
 import com.adobe.primetime.adde.rules.RuleData;
 import com.adobe.primetime.adde.rules.RuleException;
 import com.adobe.primetime.adde.rules.RuleManager;
@@ -157,7 +156,7 @@ public class DecisionEngine {
         }
     }
 
-    public void addConditionListener(String ruleID, ConditionListener listener){
+    public void addRuleListener(String ruleID, RuleListener listener){
         if (ruleID == null || listener == null){
             throw new NullPointerException();
         }
@@ -173,10 +172,7 @@ public class DecisionEngine {
             return;
         }
 
-        CallListenerAction callListenerAction = new CallListenerAction(listener);
-
         EPStatement stmt = epService.getEPAdministrator().getStatement(ruleID);
-        stmt.addListener(callListenerAction);
-
+        stmt.addListener(listener);
     }
 }

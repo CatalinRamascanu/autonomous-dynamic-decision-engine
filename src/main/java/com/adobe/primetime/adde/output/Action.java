@@ -1,7 +1,10 @@
 package com.adobe.primetime.adde.output;
 
+import com.adobe.primetime.adde.Utils;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
+
+import java.util.Map;
 
 public abstract class Action implements UpdateListener {
     protected String actionID;
@@ -14,11 +17,12 @@ public abstract class Action implements UpdateListener {
         return actionID;
     }
 
-    public abstract void executeAction();
+    public abstract void executeAction(Map<String,Object> actorMap);
 
     @Override
-    public void update(EventBean[] eventBeans, EventBean[] eventBeans1) {
-        executeAction();
+    public void update(EventBean[] newData, EventBean[] oldData) {
+        // TODO: When does newData contains more than 1 EventBean?
+        executeAction(Utils.getActorMap(newData[0]));
     }
 
     @Override
