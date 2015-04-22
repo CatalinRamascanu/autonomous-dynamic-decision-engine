@@ -1,5 +1,6 @@
 package com.adobe.primetime.adde.configuration;
 
+import com.adobe.primetime.adde.Utils;
 import com.adobe.primetime.adde.configuration.json.*;
 import com.adobe.primetime.adde.fetcher.FetcherData;
 import com.adobe.primetime.adde.fetcher.FetcherParser;
@@ -19,7 +20,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ConfigurationParser {
@@ -102,39 +106,63 @@ public class ConfigurationParser {
         }
 
         // Action Map
-        for (ActionJson actionJson : conf.getActionJson()){
+        for (ActionJson actionJson : conf.getActionJson()) {
+            Action action = null;
 
             String actionID = actionJson.getActionID();
-            if (actionID == ""){
+            if (actionID == "") {
                 throw new ConfigurationException("Action-id can not be an empty string.");
             }
 
+            Class<? extends Action> actionClass;
+            try {
+                actionClass = (Class<? extends Action>) Class.forName(actionJson.getClassName());
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                throw new ConfigurationException(
+                        actionID + ": The action class '" + actionJson.getClassName() + "' does not exist." +
+                                "Please check the documentation for how to call a class."
+                );
+            }
+
             String actionType = actionJson.getActionType();
-            if (actionType.equals("print-message")){
-                PrintMessageAction action = new PrintMessageAction();
-                action.setActionID(actionID);
-
-                String targetType = actionJson.getTarget();
-                if (targetType != null){
-                    action.setTargetType(targetType);
-                }
-                else{
+            if (actionType.equals("built-in")) {
+                try {
+                    Constructor<? extends Action> constructor = actionClass.getConstructor(String.class, ActionArgumentsJson.class);
+                    action = constructor.newInstance(actionID, actionJson.getArguments());
+                } catch (ReflectiveOperationException e) {
+                    e.printStackTrace();
                     throw new ConfigurationException(
-                            action.getActionID() + ": That action type provided does not exist."
+                            actionID + ": Failed to create instance of class '" + actionJson.getClassName() + "'. Internal error."
                     );
                 }
 
-                String message = actionJson.getMessage();
-                if (message != null){
-                    action.setMessage(message);
-                }
-                else{
+                actionMap.put(actionID, action);
+            } else {
+                if (actionType.equals("custom")) {
+                    List<Object> constructorArgs = actionJson.getArguments().getConstructorArguments();
+                    if (constructorArgs == null) {
+                        throw new ConfigurationException(
+                                actionID + ": Argument field 'constructor-args' was not found. " +
+                                        "Please include this argument field in order to call the custom action class."
+                        );
+                    }
+                    try {
+                        action = Utils.instantiate(actionClass, constructorArgs);
+                    } catch (ReflectiveOperationException e) {
+                        e.printStackTrace();
+                        throw new ConfigurationException(
+                                actionID + ": Failed to find constructor of class '" + actionJson.getClassName() + "'."
+                        );
+                    }
+
+                    actionMap.put(actionID, action);
+                } else {
                     throw new ConfigurationException(
-                            action.getActionID() + ": Message field was not provided."
+                            actionID + ": Action type '" + actionType + "' does not exist. Please use 'built-in' or 'custom'."
                     );
                 }
 
-                actionMap.put(action.getActionID(), action);
             }
         }
 

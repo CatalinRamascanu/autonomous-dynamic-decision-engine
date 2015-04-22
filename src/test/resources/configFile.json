@@ -53,15 +53,24 @@
   "actions":[
     {
       "action-id":"auth-rate-action",
-      "action-type":"print-message",
-      "message":"We have a problem with authentication rate.",
-      "target":"STDOUT"
+      "action-type":"built-in",
+      "class":"com.adobe.primetime.adde.output.PrintMessageAction",
+      "arguments": {
+        "message": "We have a problem with authentication rate.",
+        "target":"STDOUT"
+      }
     },
     {
-      "action-id":"action_rule_02",
-      "action-type":"print-message",
-      "message":"Rule_02 has fired.",
-      "target":"STDOUT"
+      "action-id":"my-action",
+      "action-type":"custom",
+      "class":"com.adobe.primetime.adde.CustomAction",
+      "arguments": {
+        "constructor-args":[
+          "My custom action ",
+          "has been trigered. ",
+          2015
+        ]
+      }
     }
   ]
 }

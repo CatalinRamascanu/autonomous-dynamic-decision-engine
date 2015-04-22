@@ -1,5 +1,6 @@
 package com.adobe.primetime.adde.output;
 
+import com.adobe.primetime.adde.configuration.json.ActionArgumentsJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,16 +19,32 @@ public class PrintMessageAction extends Action {
     private String outputFileName;
     private String message;
 
-    public void setTargetType(String targetType) {
-        this.targetType = TargetType.valueOf(targetType);
-    }
+    public PrintMessageAction(String actionID, ActionArgumentsJson args){
+        this.actionID = actionID;
 
-    public void setOutputFileName(String outputFileName) {
-        this.outputFileName = outputFileName;
-    }
+        if (args.getMessage() == null){
+            throw new ActionException(
+                    actionID + " - No 'message' field was passed as argument."
+            );
+        }
 
-    public void setMessage(String message) {
-        this.message = message;
+        if (args.getTarget() == null){
+            throw new ActionException(
+                    actionID + " - No 'target' field was passed as argument."
+            );
+        }
+
+        message = args.getMessage();
+
+        try {
+            targetType = TargetType.valueOf(args.getTarget());
+        }
+        catch (IllegalArgumentException e){
+            throw new ActionException(
+                    actionID + " - Target value '" + args.getTarget() + "' is invalid." +
+                            "Please use one of the following: 'STDOUT', 'STDERR', 'FILE'."
+            );
+        }
     }
 
     @Override

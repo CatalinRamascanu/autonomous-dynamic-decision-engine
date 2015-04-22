@@ -6,6 +6,8 @@ import com.google.api.client.util.Throwables;
 import org.apache.commons.beanutils.BeanUtils;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Constructor;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -57,5 +59,28 @@ public class Utils {
 
     public static Map<String, Object> getActorMap(EventBean eventBean) {
         return EVENT_TO_MAP.apply(eventBean);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T instantiate(Class<T> clazz, List<Object> args)
+            throws ReflectiveOperationException {
+
+        Object[] argValues = args.toArray();
+        Constructor<T>[] constructors = (Constructor<T>[]) clazz.getConstructors();
+
+        // Find the constructor & instantiate
+        for (Constructor<T> constructor : constructors) {
+            Class<?>[] types = constructor.getParameterTypes();
+            if (types.length == args.size()) {
+                for (int i = 0; i < types.length; i++) {
+                    if (!types[i].isAssignableFrom(argValues[i].getClass())) {
+                        break;
+                    }
+                }
+                return constructor.newInstance(argValues);
+            }
+        }
+
+        throw new ReflectiveOperationException();
     }
 }

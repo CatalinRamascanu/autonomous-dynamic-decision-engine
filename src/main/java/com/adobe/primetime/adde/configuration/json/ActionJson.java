@@ -11,13 +11,11 @@ public class ActionJson {
     @Key("action-type")
     private String actionType;
 
-    @Nullable
-    @Key("message")
-    private String message;
+    @Key("class")
+    private String className;
 
-    @Nullable
-    @Key("target")
-    private String target;
+    @Key("arguments")
+    private ActionArgumentsJson arguments;
 
     public String getActionID() {
         return actionID;
@@ -27,14 +25,12 @@ public class ActionJson {
         return actionType;
     }
 
-    @Nullable
-    public String getMessage() {
-        return message;
+    public String getClassName() {
+        return className;
     }
 
-    @Nullable
-    public String getTarget() {
-        return target;
+    public ActionArgumentsJson getArguments() {
+        return arguments;
     }
 
     @Override
@@ -52,15 +48,5 @@ public class ActionJson {
     @Override
     public int hashCode() {
         return actionID != null ? actionID.hashCode() : 0;
-    }
-
-    @Override
-    public String toString() {
-        return "Action{" +
-                "actionID='" + actionID + '\'' +
-                ", actionType='" + actionType + '\'' +
-                ", message='" + message + '\'' +
-                ", target='" + target + '\'' +
-                '}';
     }
 }

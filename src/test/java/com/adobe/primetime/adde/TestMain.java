@@ -33,7 +33,7 @@ public class TestMain {
         ruleModel.addActor("wrong_pass_rate");
         ruleModel.setCondition("1 = wrong_pass_rate && num_online_users < 5");
         ruleModel.addAction("auth-rate-action");
-        ruleModel.addAction("action_rule_02");
+        ruleModel.addAction("my-action");
 
         decisionEngine.addNewRule(ruleModel);
 
