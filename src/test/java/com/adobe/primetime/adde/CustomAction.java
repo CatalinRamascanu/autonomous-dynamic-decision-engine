@@ -16,7 +16,7 @@ public class CustomAction extends Action {
     }
 
     @Override
-    public void executeAction(Map<String, Object> actorMap) {
+    public void executeAction(String ruleID, Map<String, Object> actorMap) {
         LOG.info(myMessage);
     }
 }

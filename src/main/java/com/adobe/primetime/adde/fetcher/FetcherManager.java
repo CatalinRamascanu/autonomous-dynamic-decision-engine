@@ -3,15 +3,19 @@ package com.adobe.primetime.adde.fetcher;
 import com.adobe.primetime.adde.DecisionEngine;
 import com.adobe.primetime.adde.input.InputData;
 import com.espertech.esper.client.EPRuntime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sound.midi.Soundbank;
 import java.util.*;
 
 public class FetcherManager {
+    private static final Logger LOG = LoggerFactory.getLogger(FetcherManager.class);
     private Map<String,FetcherData> fetcherMap;
     private Map<String,InputData> inputMap;
     private ArrayList<FetcherAgent> fetchers = new ArrayList<>();
     private DecisionEngine decisionEngine;
+
     public FetcherManager(Map<String, FetcherData> fetcherMap, Map<String, InputData> inputMap, DecisionEngine decisionEngine) {
         this.fetcherMap = fetcherMap;
         this.inputMap = inputMap;
@@ -35,12 +39,13 @@ public class FetcherManager {
     }
 
     public void stopFetchers(){
-
         // Tell fetchers to stop
         for (FetcherAgent fetcher : fetchers){
             if (fetcher.isRunning()) {
+                LOG.info("Fetcher '" + fetcher.getID() + "' is still running.Telling it stop...");
                 fetcher.stop();
 
+                LOG.info("Wating for fetcher '" + fetcher.getID() + "' to stop...");
                 // Wait for fetcher to close
                 synchronized (fetcher){
                     try {
@@ -49,6 +54,7 @@ public class FetcherManager {
                         e.printStackTrace();
                     }
                 }
+                LOG.info("Fetcher '" + fetcher.getID() + "' is closed.");
             }
         }
     }

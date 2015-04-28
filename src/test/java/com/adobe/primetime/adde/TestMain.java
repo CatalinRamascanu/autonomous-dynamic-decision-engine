@@ -6,6 +6,8 @@ import com.adobe.primetime.adde.rules.RuleModel;
 import org.omg.PortableServer.THREAD_POLICY_ID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
@@ -14,17 +16,21 @@ import java.util.Random;
 
 public class TestMain {
     private static final Logger LOG = LoggerFactory.getLogger(TestMain.class);
+    private static Random generator = new Random();
+    private DecisionEngine decisionEngine;
 
-    @Test
-    public static void testMain(){
+    @BeforeMethod
+    public void setUp() {
         LOG.info("Initializing Decision Engine...");
-        DecisionEngine decisionEngine = new DecisionEngine();
+        decisionEngine = new DecisionEngine();
         decisionEngine.setConfigurationFile("src/test/resources/configFile.json");
         decisionEngine.initializeEngine();
         LOG.info("Initialized.");
+    }
 
-        // Add rule through api
-        LOG.info("Setting up rules and listeners...");
+    @Test
+    public void testAddRuleThroughAPI(){
+        LOG.info("Setting up rule model...");
         RuleModel ruleModel = new RuleModel();
         ruleModel.setRuleID("rule_02");
         ruleModel.addInputDomain("adobeInput");
@@ -35,9 +41,15 @@ public class TestMain {
         ruleModel.addAction("auth-rate-action");
         ruleModel.addAction("my-action");
 
+        LOG.info("Creating rule from rule model...");
         decisionEngine.addNewRule(ruleModel);
+        LOG.info("Added rule into engine.");
+    }
 
-        // Add custom listener through api
+    @Test
+    public void testCustomListener(){
+        LOG.info("Setting up custom listener...");
+
         decisionEngine.addRuleListener("rule_02", new RuleListener() {
             @Override
             public String getListenerID() {
@@ -45,16 +57,19 @@ public class TestMain {
             }
 
             @Override
-            public void executeAction(Map<String,Object> actorMap) {
+            public void executeAction(String ruleID,Map<String,Object> actorMap) {
                 LOG.info("RuleListener triggered with Map: \n" + actorMap);
 
             }
         });
 
-        LOG.info("Setup complete.");
-        LOG.info("Starting test...");
+        LOG.info("Listener setup complete.");
+    }
 
-        // We generate a few inputs...
+    @Test
+    public void testAddInput(){
+        LOG.info("Generating input...");
+
         for (int i = 0; i < 20; i++) {
             Map<String,Object> event = new HashMap();
 
@@ -69,17 +84,29 @@ public class TestMain {
             decisionEngine.addInputData("adobeInput", event);
         }
 
-        try {
-            Thread.sleep(8000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        decisionEngine.shutdown();
-
-        LOG.info("Done.");
-
+        LOG.info("Input inserted successfully into engine.");
     }
 
-    private static Random generator=new Random();
+    @Test
+    public void testAddInputWithReturnValue(){
+        LOG.info("Starting test...");
+
+        for (int i = 0; i < 10; i++) {
+            Map<String, Object> event = new HashMap<>();
+            long auth_rate = generator.nextInt(10);
+            event.put("element", auth_rate);
+            LOG.info("Adding element = " + auth_rate);
+            Map<String,Map<String,Object>> result = decisionEngine.addInputDataWithReturnValue("elements", "return-element", event);
+            LOG.info("Got result: {}", result);
+        }
+
+        LOG.info("Done.");
+    }
+
+    @AfterMethod
+    public void shutdown(){
+        LOG.info("Shutting down engine...");
+        decisionEngine.shutdown();
+    }
+
 }

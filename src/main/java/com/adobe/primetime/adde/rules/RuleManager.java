@@ -1,5 +1,6 @@
 package com.adobe.primetime.adde.rules;
 
+import com.adobe.primetime.adde.output.ReturnAction;
 import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPStatement;
 import com.adobe.primetime.adde.output.Action;
@@ -28,7 +29,18 @@ public class RuleManager {
             // Attach actions to statement
             for (String actionID : ruleData.getActions()){
                 if (actionMap.containsKey(actionID)){
-                    stmt.addListener(actionMap.get(actionID));
+                    Action action = actionMap.get(actionID);
+                    stmt.addListener(action);
+
+                    //If it is a ReturnAction we need to let it know that it has been attache to a rule.
+                    if (action instanceof ReturnAction){
+                        ((ReturnAction) action).increaseNumOfRulesAttached();
+                    }
+                }
+                else{
+                    throw new RuleException(
+                            ruleID + ": Can not attach action '" + actionID + "' to rule. Action ID does not exist"
+                    );
                 }
             }
         }

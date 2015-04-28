@@ -25,6 +25,12 @@
         {"name":"clientless-failures","type":"long"},
         {"name":"authz-attempts",     "type":"long"}
       ]
+    },
+    {
+      "input-id":"elements",
+      "data":[
+        {"name":"element",      "type":"long"}
+      ]
     }
   ],
   "fetchers":[
@@ -47,7 +53,18 @@
         "num_online_users"
       ],
       "condition": "auth_rate = 2 || num_online_users > 5",
+      "time-window": "3",
+      "batch-window": "3",
       "actions": ["auth-rate-action"]
+    },
+    {
+      "rule-id":"element-rule",
+      "input-domains":["elements"],
+      "actors":[
+        "element"
+      ],
+      "condition": "element > 0",
+      "actions" : ["return-element"]
     }
   ],
   "actions":[
@@ -70,6 +87,14 @@
           "has been trigered. ",
           2015
         ]
+      }
+    },
+    {
+      "action-id":"return-element",
+      "action-type":"built-in",
+      "class":"com.adobe.primetime.adde.output.ReturnAction",
+      "arguments":{
+        "actors-to-return":["element"]
       }
     }
   ]

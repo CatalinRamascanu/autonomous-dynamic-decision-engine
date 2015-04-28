@@ -57,6 +57,8 @@ public class FetcherAgent extends TimerTask {
     public void run() {
         String fetcherID = fetcherData.getFetcherID();
 
+        LOG.info("IsRunning = " + isRunning);
+
         // TODO: Look into this. I am double checking (at the begining and at the end). Maybe another option?
         if (!isRunning ||
                 (executionCount > fetcherData.getNumOfFetches()) && fetcherData.getNumOfFetches() >= 0){
@@ -162,5 +164,9 @@ public class FetcherAgent extends TimerTask {
 
     public boolean isRunning(){
         return isRunning;
+    }
+
+    public String getID(){
+        return fetcherData.getFetcherID();
     }
 }

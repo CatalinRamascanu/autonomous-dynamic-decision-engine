@@ -19,6 +19,10 @@ public class ActionArgumentsJson {
     private List<Object> constructorArguments;
 
     @Nullable
+    @Key("actors-to-return")
+    private List<String> actorsToReturn;
+
+    @Nullable
     public String getMessage() {
         return message;
     }
@@ -31,5 +35,10 @@ public class ActionArgumentsJson {
     @Nullable
     public List<Object> getConstructorArguments() {
         return constructorArguments;
+    }
+
+    @Nullable
+    public List<String> getActorsToReturn() {
+        return actorsToReturn;
     }
 }

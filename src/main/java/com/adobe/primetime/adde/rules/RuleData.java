@@ -6,6 +6,8 @@ import com.adobe.primetime.adde.input.InputData;
 import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.soda.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,8 @@ import java.util.Stack;
  * It uses the fields from RuleJson/RuleModel in order to properly convert to the new format.
  */
 public class RuleData {
+    private static final Logger LOG = LoggerFactory.getLogger(RuleData.class);
+
     private RuleJson ruleJson;
     private RuleModel ruleModel;
     private SelectClause selectClause;
@@ -80,7 +84,9 @@ public class RuleData {
         model.setSelectClause(selectClause);
         model.setFromClause(fromClause);
         model.setWhereClause(whereClauseExpr);
-        return epService.getEPAdministrator().create(model,getRuleID());
+        EPStatement statement = epService.getEPAdministrator().create(model,getRuleID());
+        LOG.info("Created query: {}", statement.getText());
+        return statement;
     }
 
     private void createFromClause(List<String>inputDomains) {

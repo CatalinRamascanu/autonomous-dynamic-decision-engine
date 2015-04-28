@@ -6,6 +6,7 @@ import com.adobe.primetime.adde.fetcher.FetcherData;
 import com.adobe.primetime.adde.input.InputData;
 import com.adobe.primetime.adde.fetcher.FetcherManager;
 import com.adobe.primetime.adde.output.Action;
+import com.adobe.primetime.adde.output.ReturnAction;
 import com.adobe.primetime.adde.output.RuleListener;
 import com.adobe.primetime.adde.rules.RuleData;
 import com.adobe.primetime.adde.rules.RuleException;
@@ -32,6 +33,9 @@ public class DecisionEngine {
     private Map<String,Action> actionMap;
 
     FetcherManager fetcherManager;
+
+    Map<String,Map<String,Object>> returnValue;
+    Object returnValueLock;
 
     public void setConfigurationFile(String filePath){
         configurationFilePath = filePath;
@@ -77,23 +81,26 @@ public class DecisionEngine {
         // Define fetchers
         fetcherManager = new FetcherManager(fetcherMap,inputMap,this);
         fetcherManager.startFetchers();
+
+        // Define returnValueLock
+        returnValueLock = new Object();
     }
 
-    public void addInputData(String inputId, Map<String, Object> dataMap){
-        if (inputId == null || dataMap == null){
+    public void addInputData(String inputID, Map<String, Object> dataMap){
+        if (inputID == null || dataMap == null){
             throw new NullPointerException();
         }
 
-        if (!inputMap.containsKey(inputId)){
-            LOG.error("Input with ID: " + inputId + " is not defined.");
+        if (!inputMap.containsKey(inputID)){
+            LOG.error("Input with ID: " + inputID + " is not defined.");
             return;
         }
 
-        Map<String,Object> typeMap = inputMap.get(inputId).getTypeMap();
+        Map<String,Object> typeMap = inputMap.get(inputID).getTypeMap();
 
         for (String inputName : dataMap.keySet()){
             if (!typeMap.containsKey(inputName)){
-                LOG.error("Input with ID: " + inputId + " is not defined.");
+                LOG.error("Input with ID: " + inputID + " is not defined.");
                 return;
             }
 
@@ -101,7 +108,7 @@ public class DecisionEngine {
             Object inputTypeObj = typeMap.get(inputName);
 
             if (dataValueObj.getClass().equals(inputTypeObj) ){
-                epRuntime.sendEvent(dataMap, inputId);
+                epRuntime.sendEvent(dataMap, inputID);
             }
             else{
                 LOG.error("Wrong type used for " + inputName +
@@ -180,18 +187,76 @@ public class DecisionEngine {
 
     }
 
+    public Map<String,Map<String,Object>> addInputDataWithReturnValue(String inputID, String actionID, Map<String, Object> dataMap){
+        if (actionID == null){
+            throw new NullPointerException();
+        }
+
+        if (!actionMap.containsKey(actionID)){
+            LOG.error("Action with ID: " + actionID + " is not defined.");
+            return null;
+        }
+
+        final Action action = actionMap.get(actionID);
+
+        if (!(action instanceof ReturnAction)){
+            LOG.error("Action with ID: " + actionID + " is not a ReturnAction type.");
+            return null;
+        }
+
+        //TODO: I am not 100% sure that this will work all the time.
+        // Is it possible the first notify() will be executed before the first wait?
+        // If so, that is bad...
+
+        new Thread() {
+            public void run() {
+
+                ((ReturnAction) action).setupDoneSignal();
+                synchronized (returnValueLock) {
+                    returnValueLock.notify();
+                }
+
+                returnValue = ((ReturnAction) action).getReturnValue();
+                synchronized (returnValueLock){
+                    returnValueLock.notify();
+                }
+            }
+        }.start();
+
+        synchronized (returnValueLock){
+            try {
+                returnValueLock.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        addInputData(inputID,dataMap);
+
+        synchronized (returnValueLock){
+            try {
+                returnValueLock.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return returnValue;
+
+    }
+
     public void shutdown(){
-        // Shutdown fetchers
+        LOG.info("Stopping fetchers...");
         fetcherManager.stopFetchers();
 
-        // Remove statement listeners and then statements
+        LOG.info("Removing statements and listeners...");
         EPAdministrator epAdministrator = epService.getEPAdministrator();
         for (String stmtName : epAdministrator.getStatementNames()){
             epAdministrator.getStatement(stmtName).removeAllListeners();
         }
         epAdministrator.destroyAllStatements();
 
-        // Destroy ESPER service
+        LOG.info("Destroying ESPER service...");
         epService.removeAllServiceStateListeners();
         epService.removeAllStatementStateListeners();
         epService.destroy();
