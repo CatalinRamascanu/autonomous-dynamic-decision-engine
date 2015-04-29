@@ -293,31 +293,32 @@ public class RuleData {
                     }
                 }
                 else{
-                    if (propertyType1 == null && isNumeric(op1)){
-                        Object valueOp1 = Utils.castToType(op1, propertyType2);
-
-                        if (valueOp1 == null){
+                    if (propertyType1 == null && isNumeric(op1)) {
+                        Object valueOp1;
+                        try {
+                            valueOp1 = Utils.castToType(op1, propertyType2);
+                        } catch (Exception e) {
                             throw new RuleException(
-                                    getRuleID() + ": Invalid condition expression. Operator '" + op1 +"' "
-                                           + "' can not be cast to required property type."
+                                    getRuleID() + ": Invalid condition expression. Operator '" + op1 + "' "
+                                            + "' can not be cast to required property type."
                             );
                         }
-                        else{
-                            expressionStack.push(getExprForPropWithValue(token,op2,valueOp1));
-                        }
+
+                        expressionStack.push(getExprForPropWithValue(token, op2, valueOp1));
                     }
                     else{
-                        if (propertyType2 == null && isNumeric(op2)){
-                            Object valueOp2 = Utils.castToType(op2, propertyType1);
-                            if (valueOp2 == null){
+                        if (propertyType2 == null && isNumeric(op2)) {
+                            Object valueOp2;
+                            try {
+                                valueOp2 = Utils.castToType(op2, propertyType1);
+                            } catch (Exception e) {
                                 throw new RuleException(
-                                        getRuleID() + ": Invalid condition expression. Operator '" + op2 +"' "
+                                        getRuleID() + ": Invalid condition expression. Operator '" + op2 + "' "
                                                 + "' can not be cast to required property type."
                                 );
                             }
-                            else{
-                                expressionStack.push(getExprForPropWithValue(token,op1,valueOp2));
-                            }
+
+                            expressionStack.push(getExprForPropWithValue(token, op1, valueOp2));
                         }
                         else{
                             throw new RuleException(

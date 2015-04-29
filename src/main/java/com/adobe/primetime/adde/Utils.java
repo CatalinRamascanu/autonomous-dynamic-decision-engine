@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 public class Utils {
-    public static Object castToType(String str, Object type){
+    public static Object castToType(String str, Object type) throws Exception {
         if (type == String.class){
             return str;
         }
@@ -32,8 +32,7 @@ public class Utils {
         if (type == Double.class){
             return Double.parseDouble(str);
         }
-
-        return null;
+        throw new Exception();
     }
 
     public static class eventToMap implements Function<EventBean, Map<String, Object>> {
@@ -48,7 +47,9 @@ public class Utils {
                 return ((MapEventBean)input).getProperties();
             }
             try {
-                return (Map<String, Object>) BeanUtils.describe(input);
+                // TODO: Strange error here. It did not appear until now.
+//                return (Map<String, Object>) BeanUtils.describe(input);
+                return null;
             } catch (Exception e) {
                 throw Throwables.propagate(e);
             }

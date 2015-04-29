@@ -111,15 +111,17 @@ public class FetcherAgent extends TimerTask {
                 JSONObject dataObject = it.next();
                 Map<String, Object> dataMap = new HashMap<>();
 
-                for (Object objKey : dataObject.keySet()){
+                for (Object objKey : dataObject.keySet()) {
                     String fieldName = (String) objKey;
-                    if (!typeMap.containsKey(fieldName)){
+                    if (!typeMap.containsKey(fieldName)) {
                         LOG.error("ID: '" + fetcherID + "' - Fetched JSON contains an input field name that was not" +
                                 "defined in input " + fetcherData.getReceiverInputID());
                         return;
                     }
-                    Object fieldValue = Utils.castToType((String) dataObject.get(fieldName), typeMap.get(fieldName));
-                    if (fieldValue == null){
+                    Object fieldValue;
+                    try {
+                        fieldValue = Utils.castToType((String) dataObject.get(fieldName), typeMap.get(fieldName));
+                    } catch (Exception e) {
                         LOG.error("ID: '" + fetcherID + "' - Invalid value '" + dataObject.get(fieldName) +
                                 " for field " + fieldName + ". Can not be cast to apropriate type.");
                         return;

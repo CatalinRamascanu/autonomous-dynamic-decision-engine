@@ -22,7 +22,7 @@ public class TestMain {
     @BeforeMethod
     public void setUp() {
         LOG.info("Initializing Decision Engine...");
-        decisionEngine = new DecisionEngine();
+        decisionEngine = DecisionEngine.getInstance();
         decisionEngine.setConfigurationFile("src/test/resources/configFile.json");
         decisionEngine.initializeEngine();
         LOG.info("Initialized.");

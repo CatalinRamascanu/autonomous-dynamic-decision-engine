@@ -37,6 +37,18 @@ public class DecisionEngine {
     Map<String,Map<String,Object>> returnValue;
     Object returnValueLock;
 
+    // Singleton
+    private static DecisionEngine instance = null;
+    private DecisionEngine() {
+        // Exists only to defeat instantiation.
+    }
+    public static DecisionEngine getInstance() {
+        if(instance == null) {
+            instance = new DecisionEngine();
+        }
+        return instance;
+    }
+
     public void setConfigurationFile(String filePath){
         configurationFilePath = filePath;
     }
@@ -88,20 +100,24 @@ public class DecisionEngine {
 
     public void addInputData(String inputID, Map<String, Object> dataMap){
         if (inputID == null || dataMap == null){
-            throw new NullPointerException();
+            throw new EngineException("addInputData() method contains null parameters.");
         }
 
         if (!inputMap.containsKey(inputID)){
-            LOG.error("Input with ID: " + inputID + " is not defined.");
-            return;
+            throw new EngineException("Input with ID '" + inputID + "' is not defined.");
+        }
+
+        if (inputMap.get(inputID).getTypeMap().size() != dataMap.size()){
+            throw new EngineException("Wrong number of fields used for input with ID '" + inputID + "'." +
+                    "It requires " + inputMap.get(inputID).getTypeMap().size() + "' fields and you are trying to add " +
+                    dataMap.size() + " fields. You must add values for all fields.");
         }
 
         Map<String,Object> typeMap = inputMap.get(inputID).getTypeMap();
 
         for (String inputName : dataMap.keySet()){
             if (!typeMap.containsKey(inputName)){
-                LOG.error("Input with ID: " + inputID + " is not defined.");
-                return;
+                throw new EngineException("Input field '" + inputName + "' is not defined in input '" + inputID +"'.");
             }
 
             Object dataValueObj = dataMap.get(inputName);
@@ -111,9 +127,9 @@ public class DecisionEngine {
                 epRuntime.sendEvent(dataMap, inputID);
             }
             else{
-                LOG.error("Wrong type used for " + inputName +
-                        ". Required " + inputTypeObj +
-                        " but used " + dataValueObj.getClass().getName());
+                throw new EngineException("Wrong type used for '" + inputName +
+                        "'. Required '" + inputTypeObj +
+                        "' but used '" + dataValueObj.getClass().getName() +"'.");
             }
         }
     }
@@ -260,5 +276,43 @@ public class DecisionEngine {
         epService.removeAllServiceStateListeners();
         epService.removeAllStatementStateListeners();
         epService.destroy();
+    }
+
+    public Map<String,Object> castToInputDataType(String inputId, Map<String,String> dataMap){
+        if (inputId == null || dataMap == null){
+            throw new EngineException("castToInputDataType() method contains null parameters.");
+        }
+
+        if (!inputMap.containsKey(inputId)){
+            throw new EngineException("Input with ID '" + inputId + "' is not defined.");
+        }
+
+        if (inputMap.get(inputId).getTypeMap().size() != dataMap.size()){
+            throw new EngineException("Wrong number of fields used for input with ID '" + inputId + "'." +
+                    "It requires " + inputMap.get(inputId).getTypeMap().size() + "' fields and you are trying to cast " +
+                    dataMap.size() + " fields. You must use values for all fields.");
+        }
+
+        Map<String,Object> typeMap = inputMap.get(inputId).getTypeMap();
+        Map<String,Object> newDataMap = new HashMap<>();
+        for (String inputName : dataMap.keySet()) {
+            if (!typeMap.containsKey(inputName)) {
+                throw new EngineException("Input field '" + inputName + "' is not defined in input '" + inputId + "'.");
+            }
+
+            Object newDataValue;
+            try {
+                newDataValue = Utils.castToType(dataMap.get(inputName), typeMap.get(inputName));
+            } catch (Exception e) {
+                throw new EngineException(
+                        "Can not cast input field '" + inputName + "' = '" + dataMap.get(inputName) + "' to the following" +
+                                " required format '" + typeMap.get(inputName) + "'. "
+                );
+            }
+
+            newDataMap.put(inputName, newDataValue);
+        }
+
+        return newDataMap;
     }
 }
