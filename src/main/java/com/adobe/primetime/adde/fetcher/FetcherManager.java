@@ -39,21 +39,22 @@ public class FetcherManager {
     }
 
     public void stopFetchers(){
-        // Tell fetchers to stop
+        int wait_timeout = 500;
+
         for (FetcherAgent fetcher : fetchers){
             if (fetcher.isRunning()) {
                 LOG.info("Fetcher '" + fetcher.getID() + "' is still running.Telling it stop...");
                 fetcher.stop();
 
                 LOG.info("Wating for fetcher '" + fetcher.getID() + "' to stop...");
-                // Wait for fetcher to close
                 synchronized (fetcher){
                     try {
-                        fetcher.wait();
+                        fetcher.wait(wait_timeout);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
+
                 LOG.info("Fetcher '" + fetcher.getID() + "' is closed.");
             }
         }
