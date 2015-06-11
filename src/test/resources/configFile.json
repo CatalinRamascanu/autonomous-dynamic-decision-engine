@@ -64,7 +64,7 @@
         "element"
       ],
       "condition": "element > 0",
-      "actions" : ["return-element","my-action"]
+      "actions" : ["return-element","my-action","auth-rate-action"]
     }
   ],
   "actions":[

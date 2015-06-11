@@ -1,7 +1,7 @@
 package com.adobe.primetime.adde.output;
 
+import com.adobe.primetime.adde.DecisionEngine;
 import com.adobe.primetime.adde.configuration.json.ActionArgumentsJson;
-import com.oracle.tools.packager.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +43,8 @@ public class ReturnAction extends Action {
         // If nobody is waiting for a return value then there is no need to execute action.
         if (doneSignal.getCount() == 0){
             LOG.debug("ReturnAction executed by rule '" + ruleID + "' but doneSignal was not activated.");
+            DecisionEngine.getInstance().addLogToHistory("[ACTION] - '" + actionID + "' can not return value " +
+                    "because data was not inserted through addInputDataWithReturnValue() method.");
             return;
         }
 
@@ -86,7 +88,8 @@ public class ReturnAction extends Action {
 
         LOG.debug("Waiting done. Returning value...");
 
-        return aux;
+        DecisionEngine.getInstance().addLogToHistory("[ACTION] - '" + actionID + "' is returning value...");
 
+        return aux;
     }
 }

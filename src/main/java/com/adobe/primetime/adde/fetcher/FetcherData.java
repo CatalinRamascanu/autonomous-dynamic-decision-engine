@@ -1,5 +1,6 @@
 package com.adobe.primetime.adde.fetcher;
 
+import com.adobe.primetime.adde.configuration.json.FetcherJson;
 import com.google.api.client.util.Key;
 
 public class FetcherData {
@@ -9,6 +10,7 @@ public class FetcherData {
     private int interval;
     private int numOfFetches;
     private FetcherParser fetcherParser;
+    private FetcherJson fetcherJson;
 
     public void setFetcherID(String fetcherID) {
         this.fetcherID = fetcherID;
@@ -56,6 +58,14 @@ public class FetcherData {
 
     public FetcherParser getFetcherParser() {
         return fetcherParser;
+    }
+
+    public FetcherJson getFetcherJson() {
+        return fetcherJson;
+    }
+
+    public void setFetcherJson(FetcherJson fetcherJson) {
+        this.fetcherJson = fetcherJson;
     }
 }
 

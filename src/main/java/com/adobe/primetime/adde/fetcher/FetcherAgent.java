@@ -64,6 +64,7 @@ public class FetcherAgent extends TimerTask {
                 (executionCount > fetcherData.getNumOfFetches()) && fetcherData.getNumOfFetches() >= 0){
 
             LOG.info("ID: '" + fetcherID + "' - Shutting down...");
+            decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' is shutting down...");
             containerTimer.cancel();
 
             // Call notify in order for engine to know that fetcher is dead.
@@ -72,12 +73,13 @@ public class FetcherAgent extends TimerTask {
             }
 
             isRunning = false;
-
+            decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' has stopped.");
             return;
         }
 
 
         LOG.info("ID: '" + fetcherID + "' - Will execute now with count = " + executionCount);
+        decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' will execute now with count = " + executionCount);
 
         //Fetching data
         HttpRequest request = null;
@@ -89,11 +91,15 @@ public class FetcherAgent extends TimerTask {
         } catch (IOException e) {
             LOG.error("ID: '" + fetcherID + "' - Failed to fetch data from URL: '" +
                     fetcherData.getUrl() +"'. ");
+            decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' failed to retrieve data from URL: '" +
+                    fetcherData.getUrl() +"'. ");
             e.printStackTrace();
             return;
         }
 
         LOG.info("ID: '" + fetcherID +"' - Fetched the following data: \n" + fetchedJson);
+        decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' successfully retrieved data from URL: '" +
+                fetcherData.getUrl() +"'. ");
 
         FetcherParser fetcherParser = fetcherData.getFetcherParser();
         if (fetcherParser != null){
@@ -116,6 +122,8 @@ public class FetcherAgent extends TimerTask {
                     if (!typeMap.containsKey(fieldName)) {
                         LOG.error("ID: '" + fetcherID + "' - Fetched JSON contains an input field name that was not" +
                                 "defined in input " + fetcherData.getReceiverInputID());
+                        decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' retrieved data which contains an input field name that was not" +
+                                "defined in input " + fetcherData.getReceiverInputID());
                         return;
                     }
                     Object fieldValue;
@@ -123,7 +131,9 @@ public class FetcherAgent extends TimerTask {
                         fieldValue = Utils.castToType((String) dataObject.get(fieldName), typeMap.get(fieldName));
                     } catch (Exception e) {
                         LOG.error("ID: '" + fetcherID + "' - Invalid value '" + dataObject.get(fieldName) +
-                                " for field " + fieldName + ". Can not be cast to apropriate type.");
+                                " for field " + fieldName + ". Can not be cast to appropriate type.");
+                        decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' retrieved an invalid value '" + dataObject.get(fieldName) +
+                                " for field " + fieldName + ". Can not be cast to appropriate type.");
                         return;
                     }
 
@@ -135,6 +145,7 @@ public class FetcherAgent extends TimerTask {
             }
         } catch (ParseException e) {
             LOG.error("ID: '" + fetcherID + "' - Fetched data is not a valid JSON.");
+            decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' retrieved data which is not a valid JSON.");
             e.printStackTrace();
             return;
         }
@@ -142,6 +153,9 @@ public class FetcherAgent extends TimerTask {
         LOG.info("ID: '" + fetcherID + "' - Successfully " +
                 "fetched and inserted data for " + fetcherData.getReceiverInputID() + "." +
                 "Finished execution count = " + executionCount + " .");
+        decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' successfully " +
+                "fetched and inserted data for '" + fetcherData.getReceiverInputID() + "'." +
+                "Finished execution count = " + executionCount + ".");
 
         executionCount++;
 
@@ -149,6 +163,7 @@ public class FetcherAgent extends TimerTask {
                 (executionCount > fetcherData.getNumOfFetches()) && fetcherData.getNumOfFetches() >= 0){
 
             LOG.info("ID: '" + fetcherID + "' - Shutting down...");
+            decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' is shutting down...");
             containerTimer.cancel();
 
             // Call notify in order for engine to know that fetcher is dead.
@@ -157,6 +172,7 @@ public class FetcherAgent extends TimerTask {
             }
 
             isRunning = false;
+            decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' has stopped.");
         }
     }
 

@@ -1,5 +1,6 @@
 package com.adobe.primetime.adde.output;
 
+import com.adobe.primetime.adde.DecisionEngine;
 import com.adobe.primetime.adde.configuration.json.ActionArgumentsJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,8 +50,11 @@ public class PrintMessageAction extends Action {
 
     @Override
     public void executeAction(String ruleID, Map<String,Object> actorMap) {
+        DecisionEngine engine = DecisionEngine.getInstance();
+        engine.addLogToHistory("[ACTION] - '" + actionID + "' got actorMap = " + actorMap);
         if (targetType == TargetType.STDOUT){
             LOG.info(message);
+            engine.addLogToHistory("[ACTION] - '" + actionID + "' printed message to STDOUT.");
         }
     }
 

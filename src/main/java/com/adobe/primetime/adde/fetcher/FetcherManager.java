@@ -24,6 +24,7 @@ public class FetcherManager {
 
     public void startFetchers(){
         for (String fetcherID : fetcherMap.keySet()){
+            decisionEngine.addLogToHistory("[CONFIG] - Starting data-fetcher with ID = '"+ fetcherID + "'...");
             FetcherData fetcherData = fetcherMap.get(fetcherID);
             InputData inputData = inputMap.get(fetcherData.getReceiverInputID());
             Timer timer = new Timer();
@@ -35,6 +36,8 @@ public class FetcherManager {
             timer.schedule(fetcherAgent, calendar.getTime(), fetcherData.getInterval() * 1000);
 
             fetchers.add(fetcherAgent);
+
+            decisionEngine.addLogToHistory("[CONFIG] - Data-fetcher with ID = '"+ fetcherID + "' initialized.");
         }
     }
 
@@ -54,9 +57,9 @@ public class FetcherManager {
                         e.printStackTrace();
                     }
                 }
-
-                LOG.info("Fetcher '" + fetcher.getID() + "' is closed.");
             }
         }
+
+        LOG.info("All data-fetchers were stopped.");
     }
 }

@@ -9,8 +9,10 @@ import com.adobe.primetime.adde.output.Action;
 import com.adobe.primetime.adde.output.PrintMessageAction;
 import com.adobe.primetime.adde.rules.RuleData;
 
+import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.jackson2.JacksonFactory;
+
 import com.google.api.client.util.ObjectParser;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
@@ -59,6 +61,7 @@ public class ConfigurationParser {
 
     public void parseJsonAndValidate(){
 
+
         // Parse Json
         ObjectParser parser = new JsonObjectParser(new JacksonFactory());
         try {
@@ -102,6 +105,9 @@ public class ConfigurationParser {
                 inputData.addDataType(dataName,dataType);
             }
 
+            // Contain the JSON into the InputData in case it will displayed on the web monitor.
+            inputData.setInputJson(inputJson);
+
             inputMap.put(inputData.getInputID(), inputData);
         }
 
@@ -137,7 +143,6 @@ public class ConfigurationParser {
                     );
                 }
 
-                actionMap.put(actionID, action);
             } else {
                 if (actionType.equals("custom")) {
                     List<Object> constructorArgs = actionJson.getArguments().getConstructorArguments();
@@ -149,6 +154,7 @@ public class ConfigurationParser {
                     }
                     try {
                         action = Utils.instantiate(actionClass, constructorArgs);
+                        action.setActionID(actionID);
                     } catch (ReflectiveOperationException e) {
                         e.printStackTrace();
                         throw new ConfigurationException(
@@ -156,14 +162,18 @@ public class ConfigurationParser {
                         );
                     }
 
-                    actionMap.put(actionID, action);
                 } else {
                     throw new ConfigurationException(
                             actionID + ": Action type '" + actionType + "' does not exist. Please use 'built-in' or 'custom'."
                     );
                 }
-
             }
+
+            // Contain the JSON into the Action in case it will displayed on the web monitor.
+            action.setActionJson(actionJson);
+
+            actionMap.put(actionID, action);
+
         }
 
         // Fetcher Map
@@ -224,6 +234,9 @@ public class ConfigurationParser {
                 FetcherParser fetcherParserInstance = instantiate(fetcherParser, FetcherParser.class);
                 fetcherData.setFetcherParser(fetcherParserInstance);
             }
+
+            // Contain the JSON into the Action in case it will displayed on the web monitor.
+            fetcherData.setFetcherJson(fetcherJson);
 
             fetcherMap.put(fetcherData.getFetcherID(),fetcherData);
         }

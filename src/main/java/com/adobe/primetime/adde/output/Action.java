@@ -1,12 +1,15 @@
 package com.adobe.primetime.adde.output;
 
+import com.adobe.primetime.adde.DecisionEngine;
 import com.adobe.primetime.adde.Utils;
+import com.adobe.primetime.adde.configuration.json.ActionJson;
 import com.espertech.esper.client.*;
 
 import java.util.Map;
 
 public abstract class Action implements StatementAwareUpdateListener {
     protected String actionID;
+    private ActionJson actionJson;
 
     public void setActionID(String actionID) {
         this.actionID = actionID;
@@ -21,6 +24,8 @@ public abstract class Action implements StatementAwareUpdateListener {
     @Override
     public void update(EventBean[] newData, EventBean[] oldData, EPStatement statement, EPServiceProvider epService) {
         // TODO: When does newData contains more than 1 EventBean?
+        DecisionEngine engine = DecisionEngine.getInstance();
+        engine.addLogToHistory("[RULE] - '" + statement.getName() + "' triggered. Executing action with ID = '" + actionID + "'...");
         executeAction(statement.getName(), Utils.getActorMap(newData[0]));
     }
 
@@ -39,5 +44,13 @@ public abstract class Action implements StatementAwareUpdateListener {
     @Override
     public int hashCode() {
         return actionID.hashCode();
+    }
+
+    public void setActionJson(ActionJson actionJson) {
+        this.actionJson = actionJson;
+    }
+
+    public ActionJson getActionJson() {
+        return actionJson;
     }
 }

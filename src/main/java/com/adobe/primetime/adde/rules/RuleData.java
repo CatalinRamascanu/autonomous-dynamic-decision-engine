@@ -19,7 +19,6 @@ import java.util.Stack;
  */
 public class RuleData {
     private static final Logger LOG = LoggerFactory.getLogger(RuleData.class);
-
     private RuleJson ruleJson;
     private RuleModel ruleModel;
     private SelectClause selectClause;
@@ -77,6 +76,10 @@ public class RuleData {
         }
 
         return null;
+    }
+
+    public RuleJson getRuleJson() {
+        return ruleJson;
     }
 
     public EPStatement createAndAddStatementToEsper(EPServiceProvider epService){

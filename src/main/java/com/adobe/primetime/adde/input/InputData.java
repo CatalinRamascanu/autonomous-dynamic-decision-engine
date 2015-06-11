@@ -1,5 +1,7 @@
 package com.adobe.primetime.adde.input;
 
+import com.adobe.primetime.adde.configuration.json.InputJson;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -11,6 +13,7 @@ import java.util.Set;
 public class InputData {
     private String inputID;
     private Map<String,Object> typeMap = new HashMap();
+    private InputJson inputJson;
 
     public String getInputID() {
         return inputID;
@@ -48,5 +51,13 @@ public class InputData {
     @Override
     public int hashCode() {
         return inputID.hashCode();
+    }
+
+    public void setInputJson(InputJson inputJson) {
+        this.inputJson = inputJson;
+    }
+
+    public InputJson getInputJson() {
+        return inputJson;
     }
 }

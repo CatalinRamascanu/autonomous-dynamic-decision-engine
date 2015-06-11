@@ -13,14 +13,21 @@ import com.adobe.primetime.adde.rules.RuleException;
 import com.adobe.primetime.adde.rules.RuleManager;
 import com.adobe.primetime.adde.rules.RuleModel;
 import com.espertech.esper.client.*;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class DecisionEngine {
     private static final Logger LOG = LoggerFactory.getLogger(DecisionEngine.class);
     private final String ENGINE_ID = "esperEngine";
+
+    private boolean isRunning = false;
 
     private String configurationFilePath;
     private ConfigurationParser confParser;
@@ -36,6 +43,13 @@ public class DecisionEngine {
 
     Map<String,Map<String,Object>> returnValue;
     Object returnValueLock;
+
+    // Web monitor objects
+    // LogHistoryMap:
+    // Key = User session ID (Way of identifying each user).
+    // Value = The last log that was sent to the user. Each log will be identified by its position in the array list.
+    Map<String,Integer> logHistoryMap = new HashMap<>();
+    List<String> logHistory = new ArrayList<>();
 
     // Singleton
     private static DecisionEngine instance = null;
@@ -55,15 +69,18 @@ public class DecisionEngine {
 
     public void initializeEngine(){
         if (configurationFilePath == null){
-            LOG.info("Configuration file path not specified");
-
+            LOG.info("[CONFIG] - Configuration file path not specified");
+            addLogToHistory("Configuration file path not specified.\nSetting up engine with empty configuration...");
             // Setting up engine with empty configuration.
             Configuration cepConfig = new Configuration();
             epService = EPServiceProviderManager.getProvider(ENGINE_ID, cepConfig);
             epRuntime= epService.getEPRuntime();
-
+            addLogToHistory("[CONFIG] - Engine has been initialized.");
+            isRunning = true;
             return;
         }
+
+        addLogToHistory("[CONFIG] - Setting up engine with configuration from file '" + configurationFilePath + "'..");
 
         confParser = new ConfigurationParser(configurationFilePath);
         confParser.parseJsonAndValidate();
@@ -77,16 +94,19 @@ public class DecisionEngine {
 
         // Add event types
         for (String inputID : inputMap.keySet()){
+            addLogToHistory("[CONFIG] - Defining input with ID = '" + inputID + "'...");
             InputData input = inputMap.get(inputID);
             cepConfig.addEventType(input.getInputID(),input.getTypeMap());
         }
+        addLogToHistory("[CONFIG] - Input data defined successfully.");
 
         // Setup the rule engine
         epService = EPServiceProviderManager.getProvider(ENGINE_ID, cepConfig);
 
         // Define rules
-        RuleManager ruleManager = new RuleManager(ruleMap, actionMap);
+        RuleManager ruleManager = new RuleManager(ruleMap, actionMap,this);
         ruleManager.addRulesToEngine(epService);
+        addLogToHistory("[CONFIG] - Rules and actions defined successfully.");
 
         epRuntime= epService.getEPRuntime();
 
@@ -96,6 +116,10 @@ public class DecisionEngine {
 
         // Define returnValueLock
         returnValueLock = new Object();
+
+        isRunning = true;
+
+        addLogToHistory("[CONFIG] - Engine has been initialized.");
     }
 
     public void addInputData(String inputID, Map<String, Object> dataMap){
@@ -123,15 +147,13 @@ public class DecisionEngine {
             Object dataValueObj = dataMap.get(inputName);
             Object inputTypeObj = typeMap.get(inputName);
 
-            if (dataValueObj.getClass().equals(inputTypeObj) ){
-                epRuntime.sendEvent(dataMap, inputID);
-            }
-            else{
+            if (!dataValueObj.getClass().equals(inputTypeObj) ){
                 throw new EngineException("Wrong type used for '" + inputName +
                         "'. Required '" + inputTypeObj +
                         "' but used '" + dataValueObj.getClass().getName() +"'.");
             }
         }
+        epRuntime.sendEvent(dataMap, inputID);
     }
 
     public void addNewRule(RuleModel ruleModel){
@@ -262,20 +284,28 @@ public class DecisionEngine {
     }
 
     public void shutdown(){
-        LOG.info("Stopping fetchers...");
-        fetcherManager.stopFetchers();
+        if (isRunning){
+            LOG.info("Stopping fetchers...");
+            addLogToHistory("[SHUTDOWN] - Stopping data-fetchers...");
+            fetcherManager.stopFetchers();
 
-        LOG.info("Removing statements and listeners...");
-        EPAdministrator epAdministrator = epService.getEPAdministrator();
-        for (String stmtName : epAdministrator.getStatementNames()){
-            epAdministrator.getStatement(stmtName).removeAllListeners();
+            LOG.info("Removing statements and listeners...");
+            addLogToHistory("[SHUTDOWN] - Removing rules and actions...");
+            EPAdministrator epAdministrator = epService.getEPAdministrator();
+            for (String stmtName : epAdministrator.getStatementNames()){
+                epAdministrator.getStatement(stmtName).removeAllListeners();
+            }
+            epAdministrator.destroyAllStatements();
+
+            addLogToHistory("[SHUTDOWN] - Destroying ESPER service...");
+            epService.removeAllServiceStateListeners();
+            epService.removeAllStatementStateListeners();
+            epService.destroy();
+
+            isRunning = false;
+
+            addLogToHistory("[SHUTDOWN] - Engine has been shutdown.");
         }
-        epAdministrator.destroyAllStatements();
-
-        LOG.info("Destroying ESPER service...");
-        epService.removeAllServiceStateListeners();
-        epService.removeAllStatementStateListeners();
-        epService.destroy();
     }
 
     public Map<String,Object> castToInputDataType(String inputId, Map<String,String> dataMap){
@@ -314,5 +344,47 @@ public class DecisionEngine {
         }
 
         return newDataMap;
+    }
+
+    // The following four getters are used in monitor.jsp
+    public Map<String,RuleData> getRuleMap(){
+        return ruleMap;
+    }
+
+    public Map<String,InputData> getInputMap(){
+        return inputMap;
+    }
+
+    public Map<String,Action> getActionMap(){
+        return actionMap;
+    }
+
+    public Map<String, FetcherData> getFetcherMap(){
+        return fetcherMap;
+    }
+
+    public List<String> getLogHistoryForUser(String userId){
+        if (logHistoryMap.containsKey(userId)){
+            List<String> history = logHistory.subList(logHistoryMap.get(userId), logHistory.size());
+            logHistoryMap.put(userId,logHistory.size());
+            return history;
+        }
+        logHistoryMap.put(userId,logHistory.size());
+        return logHistory;
+    }
+
+    public void addLogToHistory(String logMessage){
+        DateFormat dateFormat = new SimpleDateFormat("[dd/MM/yyyy-HH:mm:ss]");
+        Date date = new Date();
+        logHistory.add(dateFormat.format(date) + ": " + logMessage);
+    }
+
+    public void clearLogHistory(){
+        logHistoryMap.clear();
+        logHistory.clear();
+    }
+
+    public boolean isRunning(){
+        return isRunning;
     }
 }
