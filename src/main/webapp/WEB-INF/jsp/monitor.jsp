@@ -60,7 +60,11 @@
                            <div>
                               <pre id=<%= inputId + "-json-viewer"%> >
                                  <script type="text/javascript">
-                                    $(<%="'#" + inputId + "-json-viewer'"%>).jsonViewer(<%= inputJson %>);
+                                 rawInputJson = <%= inputJson %>;
+                                 orderedJson = {};
+                                 orderedJson["input-id"] = rawInputJson["input-id"];
+                                 orderedJson["data"] = rawInputJson["data"];
+                                    $(<%="'#" + inputId + "-json-viewer'"%>).jsonViewer(orderedJson);
                                     inputDataList.push(<%= inputJson %>);
                                  </script>
                               </pre>
@@ -86,8 +90,15 @@
                            <div>
                               <pre id=<%= ruleId + "-json-viewer"%> >
                                  <script type="text/javascript">
+                                 rawRuleJson = <%= ruleJson %>;
+                                 orderedJson = {};
+                                 orderedJson["rule-id"] = rawRuleJson["rule-id"];
+                                 orderedJson["input-domains"] = rawRuleJson["input-domains"];
+                                 orderedJson["actors"] = rawRuleJson["actors"];
+                                 orderedJson["condition"] = rawRuleJson["condition"];
+                                 orderedJson["action"] = rawRuleJson["action"];
                                  $(function() {
-                                    $(<%="'#" + ruleId + "-json-viewer'"%>).jsonViewer(<%= ruleJson %>);
+                                    $(<%="'#" + ruleId + "-json-viewer'"%>).jsonViewer(orderedJson);
                                  });
                                  </script>
                               </pre>

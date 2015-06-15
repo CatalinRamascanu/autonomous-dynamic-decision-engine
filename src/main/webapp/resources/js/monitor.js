@@ -63,12 +63,8 @@ function startRequestingUpdatesFromServer() {
 					engineState = false;
 				}
 			}
-			}).fail(function() {
-				alert("Communication with the engine has unexpectedly ended. Closing page.");
-				document.write('<script type="text/undefined">');
-				clearInterval(intervalID);
-				});	
-			}
+			});
+		}
     }, 200);
 }
 
@@ -239,7 +235,6 @@ function generateForm(inputJson) {
 }
 
 function createInputFormSchema(inputJson) {
-	console.log(inputJson);
 	var formSchema = {};
 	formSchema.type = "object";
 	formSchema.title = inputJson["input-id"];
@@ -263,6 +258,5 @@ function createInputFormSchema(inputJson) {
 		formSchema.properties[dataName] = {};
 		formSchema.properties[dataName].type = type;
 	}
-	console.log(formSchema);
 	return formSchema;
 }

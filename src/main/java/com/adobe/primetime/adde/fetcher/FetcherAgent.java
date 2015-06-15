@@ -30,6 +30,8 @@ public class FetcherAgent extends TimerTask {
     private InputData inputData;
     private Timer containerTimer;
     private DecisionEngine decisionEngine;
+    private int maxRetries = 3;
+    private int numOfRetries = 0;
 
     public FetcherAgent(DecisionEngine decisionEngine, InputData inputData, FetcherData fetcherData, Timer containerTimer) {
         if (decisionEngine == null || inputData == null || fetcherData == null || containerTimer == null){
@@ -62,18 +64,7 @@ public class FetcherAgent extends TimerTask {
         // TODO: Look into this. I am double checking (at the begining and at the end). Maybe another option?
         if (!isRunning ||
                 (executionCount > fetcherData.getNumOfFetches()) && fetcherData.getNumOfFetches() >= 0){
-
-            LOG.info("ID: '" + fetcherID + "' - Shutting down...");
-            decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' is shutting down...");
-            containerTimer.cancel();
-
-            // Call notify in order for engine to know that fetcher is dead.
-            synchronized (this){
-                this.notify();
-            }
-
-            isRunning = false;
-            decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' has stopped.");
+            shutdown();
             return;
         }
 
@@ -87,13 +78,18 @@ public class FetcherAgent extends TimerTask {
         try {
             request = REQUEST_FACTORY.buildGetRequest(new GenericUrl(fetcherData.getUrl()));
             fetchedJson = request.execute().parseAsString();
-
         } catch (IOException e) {
             LOG.error("ID: '" + fetcherID + "' - Failed to fetch data from URL: '" +
                     fetcherData.getUrl() +"'. ");
             decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' failed to retrieve data from URL: '" +
                     fetcherData.getUrl() +"'. ");
-            e.printStackTrace();
+            LOG.error(e.getMessage());
+            numOfRetries++;
+            if (numOfRetries >= maxRetries){
+                decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' reached the max number of retries = '" +
+                        maxRetries + "'.Will initiate shutdown process.");
+                shutdown();
+            }
             return;
         }
 
@@ -161,18 +157,7 @@ public class FetcherAgent extends TimerTask {
 
         if (!isRunning ||
                 (executionCount > fetcherData.getNumOfFetches()) && fetcherData.getNumOfFetches() >= 0){
-
-            LOG.info("ID: '" + fetcherID + "' - Shutting down...");
-            decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' is shutting down...");
-            containerTimer.cancel();
-
-            // Call notify in order for engine to know that fetcher is dead.
-            synchronized (this){
-                this.notify();
-            }
-
-            isRunning = false;
-            decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' has stopped.");
+            shutdown();
         }
     }
 
@@ -186,5 +171,22 @@ public class FetcherAgent extends TimerTask {
 
     public String getID(){
         return fetcherData.getFetcherID();
+    }
+
+    private void shutdown(){
+        String fetcherID = fetcherData.getFetcherID();
+
+        LOG.info("ID: '" + fetcherID + "' - Shutting down...");
+        decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' is shutting down...");
+        containerTimer.cancel();
+
+        // Call notify in order for engine to know that fetcher is dead.
+        synchronized (this){
+            this.notify();
+        }
+
+        isRunning = false;
+        decisionEngine.addLogToHistory("[DATA-FETCHER] - '" + fetcherID + "' has stopped.");
+
     }
 }

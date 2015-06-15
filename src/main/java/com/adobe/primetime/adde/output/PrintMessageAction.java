@@ -5,6 +5,10 @@ import com.adobe.primetime.adde.configuration.json.ActionArgumentsJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Map;
 
 public class PrintMessageAction extends Action {
@@ -28,6 +32,9 @@ public class PrintMessageAction extends Action {
                     actionID + " - No 'message' field was passed as argument."
             );
         }
+        else {
+            message = args.getMessage();
+        }
 
         if (args.getTarget() == null){
             throw new ActionException(
@@ -35,10 +42,8 @@ public class PrintMessageAction extends Action {
             );
         }
 
-        message = args.getMessage();
-
         try {
-            targetType = TargetType.valueOf(args.getTarget());
+            targetType = TargetType.valueOf(args.getTarget().toUpperCase());
         }
         catch (IllegalArgumentException e){
             throw new ActionException(
@@ -46,16 +51,48 @@ public class PrintMessageAction extends Action {
                             "Please use one of the following: 'STDOUT', 'STDERR', 'FILE'."
             );
         }
+
+        if (targetType == TargetType.FILE){
+            if (args.getFileName() == null){
+                throw new ActionException(
+                        actionID + " - No 'file-name' field was passed as argument."
+                );
+            }
+            else {
+                outputFileName = args.getFileName();
+            }
+        }
     }
 
     @Override
     public void executeAction(String ruleID, Map<String,Object> actorMap) {
         DecisionEngine engine = DecisionEngine.getInstance();
-        engine.addLogToHistory("[ACTION] - '" + actionID + "' got actorMap = " + actorMap);
         if (targetType == TargetType.STDOUT){
             LOG.info(message);
             engine.addLogToHistory("[ACTION] - '" + actionID + "' printed message to STDOUT.");
+            return;
         }
+        if (targetType == TargetType.STDERR){
+            LOG.error(message);
+            engine.addLogToHistory("[ACTION] - '" + actionID + "' printed message to STDERR.");
+            return;
+        }
+        if (targetType == TargetType.FILE){
+            try {
+                engine.addLogToHistory("[ACTION] - '" + actionID + "' is opening file '" + outputFileName + "'...");
+                File file = new File(outputFileName);
+                PrintWriter out = new PrintWriter(new FileWriter(file, true));
+                out.write(message);
+                out.flush();
+                engine.addLogToHistory("[ACTION] - '" + actionID + "' printed message to '" + outputFileName +"'.");
+                out.close();
+                engine.addLogToHistory("[ACTION] - '" + actionID + "' closed file '" + outputFileName +"'.");
+            } catch (IOException e) {
+                engine.addLogToHistory("[ACTION] - '" + actionID + "' generated an exception. Exception message: \n" + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        engine.addLogToHistory("[ACTION] - '" + actionID + "' finished executing.");
     }
 
 }

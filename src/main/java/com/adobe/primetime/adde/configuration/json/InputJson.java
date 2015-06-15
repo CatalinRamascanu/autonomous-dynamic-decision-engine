@@ -11,12 +11,12 @@ public class InputJson {
     @Key("data")
     private List<InputDataJson> data;
 
-    public List<InputDataJson> getData() {
-        return data;
-    }
-
     public String getInputID() {
         return inputID;
+    }
+
+    public List<InputDataJson> getData() {
+        return data;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class InputJson {
 
     @Override
     public String toString() {
-        return "Input{" +
+        return "{" +
                 "inputID='" + inputID + '\'' +
                 ", data=" + data +
                 '}';
