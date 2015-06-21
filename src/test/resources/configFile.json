@@ -64,7 +64,7 @@
         "element"
       ],
       "condition": "element > 0",
-      "actions" : ["return-element","my-action","auth-rate-action","sendEmailToEmployers"]
+      "actions" : ["return-element","my-action","auth-rate-action","sendJSONToServer"]
     }
   ],
   "actions":[
@@ -84,7 +84,7 @@
       "arguments": {
         "message": "We have a problem with authentication rate.",
         "target":"file",
-        "file-name":"/Users/ramascan/work/autonomous-dynamic-decision-engine/src/test/LogFile.txt"
+        "file-name":"src/test/LogFile.txt"
       }
     },
     {
@@ -115,7 +115,7 @@
         "destination-ip-address":"127.0.0.1",
         "destination-port":"12345",
         "data-source-type":"file",
-        "data-source":"/Users/ramascan/work/autonomous-dynamic-decision-engine/src/test/XmlFile"
+        "data-source":"src/test/XmlFile"
       }
     },
     {
