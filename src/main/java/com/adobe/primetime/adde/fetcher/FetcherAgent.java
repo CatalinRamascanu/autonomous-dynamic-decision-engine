@@ -63,7 +63,7 @@ public class FetcherAgent extends TimerTask {
 
         // TODO: Look into this. I am double checking (at the begining and at the end). Maybe another option?
         if (!isRunning ||
-                (executionCount > fetcherData.getNumOfFetches()) && fetcherData.getNumOfFetches() >= 0){
+                (executionCount > fetcherData.getNumOfFetches() && fetcherData.getNumOfFetches() >= 0)){
             shutdown();
             return;
         }
@@ -156,7 +156,7 @@ public class FetcherAgent extends TimerTask {
         executionCount++;
 
         if (!isRunning ||
-                (executionCount > fetcherData.getNumOfFetches()) && fetcherData.getNumOfFetches() >= 0){
+                (executionCount > fetcherData.getNumOfFetches() && fetcherData.getNumOfFetches() >= 0)){
             shutdown();
         }
     }

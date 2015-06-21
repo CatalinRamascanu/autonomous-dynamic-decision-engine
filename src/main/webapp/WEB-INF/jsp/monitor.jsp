@@ -97,9 +97,7 @@
                                  orderedJson["actors"] = rawRuleJson["actors"];
                                  orderedJson["condition"] = rawRuleJson["condition"];
                                  orderedJson["action"] = rawRuleJson["action"];
-                                 $(function() {
-                                    $(<%="'#" + ruleId + "-json-viewer'"%>).jsonViewer(orderedJson);
-                                 });
+                                 $(<%="'#" + ruleId + "-json-viewer'"%>).jsonViewer(orderedJson);
                                  </script>
                               </pre>
                            </div>
@@ -125,7 +123,13 @@
                            <div>
                               <pre id=<%= actionId + "-json-viewer"%> >
                                  <script type="text/javascript">
-                                    $(<%="'#" + actionId + "-json-viewer'"%>).jsonViewer(<%= actionJson %>);
+                                 rawActionJson = <%= actionJson %>;
+                                 orderedJson = {};
+                                 orderedJson["action-id"] = rawActionJson["action-id"];
+                                 orderedJson["action-type"] = rawActionJson["action-type"];
+                                 orderedJson["class"] = rawActionJson["class"];
+                                 orderedJson["arguments"] = rawActionJson["arguments"];
+                                 $(<%="'#" + actionId + "-json-viewer'"%>).jsonViewer(orderedJson);
                                  </script>
                               </pre>
                            </div>

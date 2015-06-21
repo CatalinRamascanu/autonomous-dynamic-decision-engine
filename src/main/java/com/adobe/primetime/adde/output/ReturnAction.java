@@ -19,7 +19,7 @@ public class ReturnAction extends Action {
     private static int numOfRulesAttached = 0;
 
     // TODO: Either find a way to calculate timeout or maybe let the user choose his own timeout.
-    private final long WAIT_TIMEOUT = 2;
+    private long waitTimeout = 1000;
 
     public ReturnAction(String actionID, ActionArgumentsJson args){
         valuesMap = new HashMap<>();
@@ -75,10 +75,14 @@ public class ReturnAction extends Action {
         doneSignal = new CountDownLatch(numOfRulesAttached);
     }
 
+    public void setWaitTimeout(long waitTimeout){
+        this.waitTimeout = waitTimeout;
+    }
+
     public Map<String,Map<String,Object>> getReturnValue() {
         try {
             LOG.debug("Waiting until all returnAction are executed or timeout expires...");
-            doneSignal.await(WAIT_TIMEOUT, TimeUnit.SECONDS);
+            doneSignal.await(waitTimeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -39,7 +39,7 @@
       "receiver-input-id":"esmInput",
       "url":"https://sp.auth.adobe.com/esm/v2/year.json",
       "interval":"2s",
-      "num-of-fetches":"3",
+      "num-of-fetches":"0",
       "fetcher-parser":"com.adobe.primetime.adde.EsmJsonParser"
     }
   ],
@@ -124,10 +124,11 @@
       "class": "com.adobe.primetime.adde.output.SendEmailViaSmtpAction",
       "arguments": {
         "smtp-properties" :[
-          {"prop-name" : "mail.smtp.auth",            "prop-value":"true"},
-          {"prop-name" : "mail.smtp.starttls.enable", "prop-value":"true"},
-          {"prop-name" : "mail.smtp.host",            "prop-value":"smtp.gmail.com"},
-          {"prop-name" : "mail.smtp.port",            "prop-value":"587"}
+          {"prop-name" : "mail.smtp.connectiontimeout", "prop-value":"200"},
+          {"prop-name" : "mail.smtp.auth",              "prop-value":"true"},
+          {"prop-name" : "mail.smtp.starttls.enable",   "prop-value":"true"},
+          {"prop-name" : "mail.smtp.host",              "prop-value":"smtp.gmail.com"},
+          {"prop-name" : "mail.smtp.port",              "prop-value":"587"}
         ],
         "username":"bot.smack21",
         "password":"Linux1234",

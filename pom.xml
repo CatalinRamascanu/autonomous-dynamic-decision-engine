@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.adobe.primetime</groupId>
     <artifactId>adde</artifactId>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <version>0.1-SNAPSHOT</version>
     <name>autonomous-dynamic-decision-engine</name>
 

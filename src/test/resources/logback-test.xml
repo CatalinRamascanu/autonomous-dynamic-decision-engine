@@ -10,7 +10,7 @@
         <target>System.err</target>
     </appender>
 
-    <logger name="com.adobe.primetime.adde" level="INFO"/>
+    <logger name="com.adobe.primetime.adde" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="STDERR" />

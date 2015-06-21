@@ -225,7 +225,10 @@ public class DecisionEngine {
 
     }
 
-    public Map<String,Map<String,Object>> addInputDataWithReturnValue(String inputID, String actionID, Map<String, Object> dataMap){
+    public Map<String,Map<String,Object>> addInputDataWithReturnValue(
+            final String inputID,
+            final String actionID,
+            final Map<String, Object> dataMap){
         if (actionID == null){
             throw new NullPointerException();
         }
@@ -242,45 +245,40 @@ public class DecisionEngine {
             return null;
         }
 
-        //TODO: I am not 100% sure that this will work all the time.
-        // Is it possible the first notify() will be executed before the first wait?
-        // If so, that is bad...
-
-        new Thread() {
-            public void run() {
-
-                ((ReturnAction) action).setupDoneSignal();
-                synchronized (returnValueLock) {
-                    returnValueLock.notify();
-                }
-
-                returnValue = ((ReturnAction) action).getReturnValue();
-                synchronized (returnValueLock){
-                    returnValueLock.notify();
-                }
-            }
-        }.start();
-
-        synchronized (returnValueLock){
-            try {
-                returnValueLock.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
+        ((ReturnAction) action).setupDoneSignal();
         addInputData(inputID,dataMap);
-
-        synchronized (returnValueLock){
-            try {
-                returnValueLock.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        returnValue = ((ReturnAction) action).getReturnValue();
 
         return returnValue;
+    }
 
+    public Map<String,Map<String,Object>> addInputDataWithReturnValue(
+            final String inputID,
+            final String actionID,
+            final Map<String, Object> dataMap,
+            final long waitTimeout){
+        if (actionID == null){
+            throw new NullPointerException();
+        }
+
+        if (!actionMap.containsKey(actionID)){
+            LOG.error("Action with ID: " + actionID + " is not defined.");
+            return null;
+        }
+
+        final Action action = actionMap.get(actionID);
+
+        if (!(action instanceof ReturnAction)){
+            LOG.error("Action with ID: " + actionID + " is not a ReturnAction type.");
+            return null;
+        }
+
+        ((ReturnAction) action).setWaitTimeout(waitTimeout);
+        ((ReturnAction) action).setupDoneSignal();
+        addInputData(inputID,dataMap);
+        returnValue = ((ReturnAction) action).getReturnValue();
+
+        return returnValue;
     }
 
     public void shutdown(){
@@ -373,10 +371,12 @@ public class DecisionEngine {
         return logHistory;
     }
 
-    public void addLogToHistory(String logMessage){
+    public void addLogToHistory(String message){
         DateFormat dateFormat = new SimpleDateFormat("[dd/MM/yyyy-HH:mm:ss]");
         Date date = new Date();
-        logHistory.add(dateFormat.format(date) + ": " + logMessage);
+        String logMessage = dateFormat.format(date) + ": " + message;
+        LOG.info(message);
+        logHistory.add(logMessage);
     }
 
     public void clearLogHistory(){

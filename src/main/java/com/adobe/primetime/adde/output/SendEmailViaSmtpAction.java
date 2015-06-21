@@ -3,6 +3,8 @@ package com.adobe.primetime.adde.output;
 import com.adobe.primetime.adde.DecisionEngine;
 import com.adobe.primetime.adde.configuration.json.ActionArgumentsJson;
 import com.adobe.primetime.adde.configuration.json.SmtpPropertyJson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
@@ -12,6 +14,7 @@ import java.util.Map;
 import java.util.Properties;
 
 public class SendEmailViaSmtpAction extends Action{
+    private static final Logger LOG = LoggerFactory.getLogger(SendEmailViaSmtpAction.class);
     private List<SmtpPropertyJson> smtpPropertyList;
     private String username;
     private String password;
@@ -141,7 +144,6 @@ public class SendEmailViaSmtpAction extends Action{
             engine.addLogToHistory("[ACTION] - '" + actionID + "' sent all emails.");
         }catch (MessagingException mex) {
             engine.addLogToHistory("[ACTION] - '" + actionID + "' generated an exception. Exception message: \n" + mex.getMessage());
-            mex.printStackTrace();
         }
         engine.addLogToHistory("[ACTION] - '" + actionID + "' finished executing.");
     }
