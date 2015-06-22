@@ -9,6 +9,7 @@ import java.util.Map;
 
 public abstract class Action implements StatementAwareUpdateListener {
     protected String actionID;
+    protected DecisionEngine engine;
     private ActionJson actionJson;
 
     public void setActionID(String actionID) {
@@ -24,8 +25,9 @@ public abstract class Action implements StatementAwareUpdateListener {
     @Override
     public void update(EventBean[] newData, EventBean[] oldData, EPStatement statement, EPServiceProvider epService) {
         // TODO: When does newData contains more than 1 EventBean?
-        DecisionEngine engine = DecisionEngine.getInstance();
-        engine.addLogToHistory("[RULE] - '" + statement.getName() + "' triggered. Executing action with ID = '" + actionID + "'...");
+        if (engine != null){
+            engine.addLogToHistory("[RULE] - '" + statement.getName() + "' triggered. Executing action with ID = '" + actionID + "'...");
+        }
         executeAction(statement.getName(), Utils.getActorMap(newData[0]));
     }
 

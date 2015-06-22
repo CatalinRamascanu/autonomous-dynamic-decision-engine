@@ -1,5 +1,6 @@
 package com.adobe.primetime.adde.configuration;
 
+import com.adobe.primetime.adde.DecisionEngine;
 import com.adobe.primetime.adde.Utils;
 import com.adobe.primetime.adde.configuration.json.*;
 import com.adobe.primetime.adde.fetcher.FetcherData;
@@ -31,6 +32,7 @@ import java.util.Map;
 public class ConfigurationParser {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigurationParser.class);
     private String filePath;
+    private DecisionEngine engine;
 
     private Map<String,InputData> inputMap = new HashMap();
     private Map<String,FetcherData> fetcherMap = new HashMap();
@@ -39,7 +41,8 @@ public class ConfigurationParser {
 
     private ConfigurationJson conf;
 
-    public ConfigurationParser(String filePath) {
+    public ConfigurationParser(DecisionEngine engine, String filePath) {
+        this.engine = engine;
         this.filePath = filePath;
     }
 
@@ -134,8 +137,8 @@ public class ConfigurationParser {
             String actionType = actionJson.getActionType();
             if (actionType.equals("built-in")) {
                 try {
-                    Constructor<? extends Action> constructor = actionClass.getConstructor(String.class, ActionArgumentsJson.class);
-                    action = constructor.newInstance(actionID, actionJson.getArguments());
+                    Constructor<? extends Action> constructor = actionClass.getConstructor(DecisionEngine.class, String.class, ActionArgumentsJson.class);
+                    action = constructor.newInstance(engine,actionID, actionJson.getArguments());
                 } catch (ReflectiveOperationException e) {
                     e.printStackTrace();
                     throw new ConfigurationException(

@@ -23,7 +23,8 @@ public class SendEmailViaSmtpAction extends Action{
     private String subject;
     private String message;
 
-    public SendEmailViaSmtpAction(String actionID, ActionArgumentsJson args){
+    public SendEmailViaSmtpAction(DecisionEngine engine, String actionID, ActionArgumentsJson args){
+        this.engine = engine;
         this.actionID = actionID;
 
         if (args.getSmtpPropertyList() == null){
@@ -89,7 +90,6 @@ public class SendEmailViaSmtpAction extends Action{
 
     @Override
     public void executeAction(String ruleID, Map<String, Object> actorMap) {
-        DecisionEngine engine = DecisionEngine.getInstance();
         engine.addLogToHistory("[ACTION] - '" + actionID + "' is setting up email service... ");
 
 

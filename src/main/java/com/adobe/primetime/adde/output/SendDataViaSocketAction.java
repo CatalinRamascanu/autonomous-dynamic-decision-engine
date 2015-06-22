@@ -21,7 +21,8 @@ public class SendDataViaSocketAction extends Action {
     private SourceType dataSourceType;
     private String dataSource;
 
-    public SendDataViaSocketAction(String actionID, ActionArgumentsJson args){
+    public SendDataViaSocketAction(DecisionEngine engine, String actionID, ActionArgumentsJson args){
+        this.engine = engine;
         this.actionID = actionID;
 
         if (args.getDestinationIpAddress() == null){
@@ -71,8 +72,6 @@ public class SendDataViaSocketAction extends Action {
 
     @Override
     public void executeAction(String ruleID, Map<String, Object> actorMap) {
-        DecisionEngine engine = DecisionEngine.getInstance();
-
         Socket socket = null;
         try {
             engine.addLogToHistory("[ACTION] - '" + actionID + "' is opening a new socket to " + destinationIpAddress +":" + destinationPort);

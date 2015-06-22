@@ -16,7 +16,7 @@ public class WebServerApplication extends SpringBootServletInitializer {
     public static void main(String[] args) {
         //Setup engine
         LOG.info("Initializing Decision Engine...");
-        DecisionEngine decisionEngine = DecisionEngine.getInstance();
+        DecisionEngine decisionEngine = FactoryDecisionEngine.getSingletonInstance();
         decisionEngine.setConfigurationFile("src/test/resources/configFile.json");
         decisionEngine.initializeEngine();
         LOG.info("Initialized.");

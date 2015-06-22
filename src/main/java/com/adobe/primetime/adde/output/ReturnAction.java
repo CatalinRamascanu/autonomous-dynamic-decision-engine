@@ -21,9 +21,11 @@ public class ReturnAction extends Action {
     // TODO: Either find a way to calculate timeout or maybe let the user choose his own timeout.
     private long waitTimeout = 1000;
 
-    public ReturnAction(String actionID, ActionArgumentsJson args){
-        valuesMap = new HashMap<>();
+    public ReturnAction(DecisionEngine engine, String actionID, ActionArgumentsJson args){
+        this.engine = engine;
         this.actionID = actionID;
+
+        valuesMap = new HashMap<>();
         actorsToReturn = args.getActorsToReturn();
         doneSignal = new CountDownLatch(0);
 
@@ -43,7 +45,7 @@ public class ReturnAction extends Action {
         // If nobody is waiting for a return value then there is no need to execute action.
         if (doneSignal.getCount() == 0){
             LOG.debug("ReturnAction executed by rule '" + ruleID + "' but doneSignal was not activated.");
-            DecisionEngine.getInstance().addLogToHistory("[ACTION] - '" + actionID + "' can not return value " +
+            engine.addLogToHistory("[ACTION] - '" + actionID + "' can not return value " +
                     "because data was not inserted through addInputDataWithReturnValue() method.");
             return;
         }
@@ -92,7 +94,7 @@ public class ReturnAction extends Action {
 
         LOG.debug("Waiting done. Returning value...");
 
-        DecisionEngine.getInstance().addLogToHistory("[ACTION] - '" + actionID + "' is returning value...");
+        engine.addLogToHistory("[ACTION] - '" + actionID + "' is returning value...");
 
         return aux;
     }

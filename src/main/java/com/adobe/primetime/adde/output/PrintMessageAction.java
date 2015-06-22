@@ -24,7 +24,8 @@ public class PrintMessageAction extends Action {
     private String outputFileName;
     private String message;
 
-    public PrintMessageAction(String actionID, ActionArgumentsJson args){
+    public PrintMessageAction(DecisionEngine engine, String actionID, ActionArgumentsJson args){
+        this.engine = engine;
         this.actionID = actionID;
 
         if (args.getMessage() == null){
@@ -66,7 +67,6 @@ public class PrintMessageAction extends Action {
 
     @Override
     public void executeAction(String ruleID, Map<String,Object> actorMap) {
-        DecisionEngine engine = DecisionEngine.getInstance();
         if (targetType == TargetType.STDOUT){
             LOG.info(message);
             engine.addLogToHistory("[ACTION] - '" + actionID + "' printed message to STDOUT.");

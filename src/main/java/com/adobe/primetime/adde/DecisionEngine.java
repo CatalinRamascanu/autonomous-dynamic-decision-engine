@@ -51,18 +51,6 @@ public class DecisionEngine {
     Map<String,Integer> logHistoryMap = new HashMap<>();
     List<String> logHistory = new ArrayList<>();
 
-    // Singleton
-    private static DecisionEngine instance = null;
-    private DecisionEngine() {
-        // Exists only to defeat instantiation.
-    }
-    public static DecisionEngine getInstance() {
-        if(instance == null) {
-            instance = new DecisionEngine();
-        }
-        return instance;
-    }
-
     public void setConfigurationFile(String filePath){
         configurationFilePath = filePath;
     }
@@ -82,7 +70,7 @@ public class DecisionEngine {
 
         addLogToHistory("[CONFIG] - Setting up engine with configuration from file '" + configurationFilePath + "'..");
 
-        confParser = new ConfigurationParser(configurationFilePath);
+        confParser = new ConfigurationParser(this,configurationFilePath);
         confParser.parseJsonAndValidate();
 
         inputMap = confParser.getInputMap();
@@ -283,11 +271,9 @@ public class DecisionEngine {
 
     public void shutdown(){
         if (isRunning){
-            LOG.info("Stopping fetchers...");
             addLogToHistory("[SHUTDOWN] - Stopping data-fetchers...");
             fetcherManager.stopFetchers();
 
-            LOG.info("Removing statements and listeners...");
             addLogToHistory("[SHUTDOWN] - Removing rules and actions...");
             EPAdministrator epAdministrator = epService.getEPAdministrator();
             for (String stmtName : epAdministrator.getStatementNames()){

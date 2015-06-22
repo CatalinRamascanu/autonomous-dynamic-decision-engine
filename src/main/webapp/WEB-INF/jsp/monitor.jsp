@@ -20,7 +20,7 @@
    <%@ page import="com.adobe.primetime.adde.input.InputData"%>
    <%@ page import="com.adobe.primetime.adde.output.Action"%>
    <%@ page import="com.adobe.primetime.adde.fetcher.FetcherData"%>
-   <% DecisionEngine decisionEngine = DecisionEngine.getInstance();
+   <% DecisionEngine decisionEngine = FactoryDecisionEngine.getSingletonInstance();
    JsonFactory factory = new JacksonFactory(); %>
    
    <script>

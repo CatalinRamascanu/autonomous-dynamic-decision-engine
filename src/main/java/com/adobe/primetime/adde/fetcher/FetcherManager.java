@@ -46,10 +46,10 @@ public class FetcherManager {
 
         for (FetcherAgent fetcher : fetchers){
             if (fetcher.isRunning()) {
-                LOG.info("Fetcher '" + fetcher.getID() + "' is still running.Telling it stop...");
+                decisionEngine.addLogToHistory("[SHUTDOWN] - Fetcher '" + fetcher.getID() + "' is still running.Telling it stop...");
                 fetcher.stop();
 
-                LOG.info("Wating for fetcher '" + fetcher.getID() + "' to stop...");
+                decisionEngine.addLogToHistory("[SHUTDOWN] - Waiting for fetcher '" + fetcher.getID() + "' to stop...");
                 synchronized (fetcher){
                     try {
                         fetcher.wait(wait_timeout);
@@ -60,6 +60,6 @@ public class FetcherManager {
             }
         }
 
-        LOG.info("All data-fetchers were stopped.");
+        decisionEngine.addLogToHistory("[SHUTDOWN] - All data-fetchers were stopped.");
     }
 }
