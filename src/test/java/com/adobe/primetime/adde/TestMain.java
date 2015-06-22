@@ -103,6 +103,11 @@ public class TestMain {
         LOG.info("Done.");
     }
 
+    @Test
+    public void testWebServer(){
+        decisionEngine.startWebServer();
+    }
+
     @AfterMethod
     public void shutdown(){
         LOG.info("Shutting down engine...");

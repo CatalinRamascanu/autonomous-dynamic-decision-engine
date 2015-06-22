@@ -12,6 +12,7 @@ import com.adobe.primetime.adde.rules.RuleData;
 import com.adobe.primetime.adde.rules.RuleException;
 import com.adobe.primetime.adde.rules.RuleManager;
 import com.adobe.primetime.adde.rules.RuleModel;
+import com.adobe.primetime.adde.webserver.controller.WebServer;
 import com.espertech.esper.client.*;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
@@ -39,17 +40,20 @@ public class DecisionEngine {
     private Map<String,RuleData> ruleMap;
     private Map<String,Action> actionMap;
 
-    FetcherManager fetcherManager;
+    private FetcherManager fetcherManager;
 
-    Map<String,Map<String,Object>> returnValue;
-    Object returnValueLock;
+    private WebServer webServer;
+
+    // For Return-Value Action
+    private Map<String,Map<String,Object>> returnValue;
+    private Object returnValueLock;
 
     // Web monitor objects
     // LogHistoryMap:
     // Key = User session ID (Way of identifying each user).
     // Value = The last log that was sent to the user. Each log will be identified by its position in the array list.
-    Map<String,Integer> logHistoryMap = new HashMap<>();
-    List<String> logHistory = new ArrayList<>();
+    private Map<String,Integer> logHistoryMap = new HashMap<>();
+    private List<String> logHistory = new ArrayList<>();
 
     public void setConfigurationFile(String filePath){
         configurationFilePath = filePath;
@@ -330,6 +334,12 @@ public class DecisionEngine {
         return newDataMap;
     }
 
+    public void startWebServer(){
+        if (webServer == null && isRunning()){
+            webServer = new WebServer();
+            webServer.start();
+        }
+    }
     // The following four getters are used in monitor.jsp
     public Map<String,RuleData> getRuleMap(){
         return ruleMap;

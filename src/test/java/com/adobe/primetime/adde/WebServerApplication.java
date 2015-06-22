@@ -2,15 +2,8 @@ package com.adobe.primetime.adde;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.web.SpringBootServletInitializer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-@SpringBootApplication
-public class WebServerApplication extends SpringBootServletInitializer {
+public class WebServerApplication {
     private static final Logger LOG = LoggerFactory.getLogger(WebServerApplication.class);
 
     public static void main(String[] args) {
@@ -21,12 +14,7 @@ public class WebServerApplication extends SpringBootServletInitializer {
         decisionEngine.initializeEngine();
         LOG.info("Initialized.");
 
-        // Start spring
-        SpringApplication.run(WebServerApplication.class, args);
+        decisionEngine.startWebServer();
     }
 
-    @Override
-	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-		return application.sources(WebServerApplication.class);
-	}
 }

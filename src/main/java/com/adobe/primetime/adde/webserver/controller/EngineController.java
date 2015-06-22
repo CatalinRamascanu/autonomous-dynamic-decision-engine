@@ -67,6 +67,7 @@ public class EngineController {
         if (engine.isRunning()){
             engine.addLogToHistory("[SHUTDOWN] - Process initialized by user with IP: '" + request.getRemoteAddr() + "'...");
             engine.shutdown();
+            // Wait for the engine to shutdown and then clear LogHistory.
             try {
                 Thread.sleep(200);
             } catch (InterruptedException e) {
